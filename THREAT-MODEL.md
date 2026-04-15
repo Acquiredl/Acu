@@ -44,7 +44,7 @@ No network services are exposed. No multi-user access. No remote execution.
 
 **Vector:** A gate script (gate-*.sh or advance.sh) is modified to always pass, skip checks, or alter audit logs.
 
-**Impact:** High. Gates are the immune system — bypassed gates mean unchecked work advances through the pipeline.
+**Impact:** High. Gates are the reliability layer — bypassed gates mean unchecked work advances through the pipeline.
 
 **Existing mitigations:**
 - Git tracks all gate modifications
@@ -62,15 +62,9 @@ No network services are exposed. No multi-user access. No remote execution.
 
 ### T3 — Semantic Evaluation Manipulation (Prompt Injection via Work Artifacts)
 
-**Status:** Not applicable. Gates are purely structural (bash scripts, no LLM API calls). If a future version adds LLM-based gate evaluation, this threat must be reassessed.
+**Status:** Not applicable — gates are purely structural (bash scripts, no LLM API calls).
 
-**Vector:** A work unit's content contains adversarial text designed to override an LLM-based evaluation prompt, causing a gate to pass when it shouldn't.
-
-**Impact:** None — no LLM evaluation in gate path.
-
-**Risk level:** None.
-
-**Recommended action:** If LLM-based gate evaluation is added, implement a sanitization layer that strips instruction-like patterns from work artifacts before evaluation.
+**Reassessment trigger:** If LLM-based gate evaluation is added, reassess this threat and implement a sanitization layer that strips instruction-like patterns from work artifacts before evaluation.
 
 ---
 
@@ -94,17 +88,16 @@ No network services are exposed. No multi-user access. No remote execution.
 
 ### T5 — API Key Exposure
 
-**Vector:** Anthropic API key used by runner.mjs is leaked via git commit, log output, or error message.
+**Vector:** Anthropic API key is leaked via git commit, log output, or error message.
 
 **Impact:** Medium. API key allows token consumption on the user's account.
 
 **Existing mitigations:**
-- runner.mjs loads API key from `.env` file (not committed) or environment variable
 - `.env` is in `.gitignore`
-- runner.mjs stderr output does not echo the API key
+- API key is loaded from environment variable, not hardcoded
 
 **Missing mitigations:**
-- No runtime check that the key came from a secure source (env var vs hardcoded)
+- No runtime check that the key came from a secure source
 
 **Risk level:** Low (standard practice followed).
 

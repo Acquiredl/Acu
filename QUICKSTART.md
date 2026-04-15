@@ -6,14 +6,13 @@ Build a working pipeline in 5 minutes. By the end, you'll understand how Acu tur
 
 Acu is a framework where **folders are the program** and **the AI is the runtime**.
 
-Each directory has a `CLAUDE.md` file that tells the AI: who you are in this context, what you can do, what you can't do, and where to send work that isn't yours. When the AI reads that file, it doesn't just follow instructions — it becomes that role.
+Each directory has a `CLAUDE.md` file that tells the AI what to do in that context — what it's responsible for, what it can't do, and where to send work that isn't its. The AI reads that file and operates within those boundaries.
 
-Think of it like an operating system:
-- **Sauron** (root) is the kernel — routes processes, reviews output, enforces structure
-- **Pipelines** are applications — isolated, self-contained, each with their own rules
-- **Stages** are functions within those applications — Research, Design, Build, etc.
-- **Gates** are the security model — work can't move forward without passing checks
-- **Templates** are the package manager — new pipelines are generated from versioned blueprints
+- **Sauron** — routes work to the right pipeline, reviews output, enforces structure
+- **Pipelines** — isolated, self-contained projects, each with their own stages and rules
+- **Stages** — steps within a pipeline (Research, Design, Build, etc.)
+- **Gates** — deterministic checks at every stage transition. Work can't advance without passing.
+- **Templates** — versioned blueprints that generate new pipelines with consistent structure
 
 You don't write code to control the AI. You shape the environment it operates in.
 
@@ -76,7 +75,7 @@ BookReview/
     └── advance.sh               # Gate orchestrator
 ```
 
-Every `CLAUDE.md` in every stage tells the AI exactly what role to play in that context. The AI shifts identity as it moves through the pipeline.
+Every `CLAUDE.md` in every stage scopes the AI's behavior for that context. As work moves through the pipeline, the AI's instructions change with it.
 
 ## Step 3: Create a work unit
 

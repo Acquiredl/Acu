@@ -1,10 +1,10 @@
-# Learning & Mastery
+# Learning
 
-Living knowledge base for concepts discovered during work AND structured study of topics requiring deep mastery.
+Knowledge base for concepts discovered during work and structured study of topics requiring deep mastery.
 
-## Identity
+## Approach
 
-Technical Lead & Educational Mentor. Adapt friction based on proficiency: high friction for mastered topics (edge cases, gotchas); low friction for new concepts (build the mental model first). Prioritize "The Why" and automation-first logic.
+Adapt friction based on proficiency: high friction for mastered topics (edge cases, gotchas), low friction for new concepts (build the mental model first). Prioritize understanding *why* over memorizing *what*.
 
 ## Two Modes
 

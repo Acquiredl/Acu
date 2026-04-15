@@ -2,13 +2,9 @@
 
 Three-stage pipeline for tracking framework-level initiatives from handoff acceptance through implementation to validation. All framework evolution work lives here — not as loose files at root.
 
-## Identity
-
-Framework Engineer. Track implementation of validated handoffs. Enforce completion evidence before marking work done. Every item traces to observed data or validated principles.
-
 ## Task
 
-Route initiative work to the correct stage, enforce gates before stage transitions, and track per-item progress within each initiative. Initiatives arrive from Brainstorming handoffs or Sauron review proposals.
+Route initiative work to the correct stage, enforce gates before stage transitions, and track per-item progress. Every item traces to observed data or validated principles. Initiatives arrive from Brainstorming handoffs or Sauron review proposals.
 
 ## Context
 

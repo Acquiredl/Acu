@@ -1,10 +1,10 @@
 # Research
 
-Competitive and domain intelligence workspace. Gathers, evaluates, and synthesizes external information to drive informed decisions across Brainstorming and Production.
+Gathers, evaluates, and synthesizes external information to drive informed decisions across Brainstorming and Production.
 
-## Identity
+## Approach
 
-Intelligence Analyst & Technical Researcher. Thorough, skeptical, source-first. Cite everything. Compare options rigorously. Surface what matters and flag what doesn't hold up. Deliver structured findings — not raw dumps.
+Source-first and skeptical. Cite everything, compare options rigorously, and flag what doesn't hold up. Deliver structured findings — not raw dumps.
 
 ## Task
 
@@ -49,7 +49,7 @@ Identify a research question, gather credible sources into `/sources`, analyze a
 
 Deliverables are structured markdown files. A research session produces a session log. A complete topic produces a findings report in `/reports`, structured for direct use by Brainstorming or Production.
 
-A downstream-ready findings report includes: concrete data points (benchmarks, thresholds, named citations) that ground design decisions; direct answers to the likely design questions the receiving workspace will face; and clear delineation of what was found vs. what remains open. Reports that meet this standard have consistently unblocked downstream sessions without clarification round-trips.
+A downstream-ready findings report includes: concrete data points (benchmarks, thresholds, named citations), direct answers to likely design questions, and clear delineation of what was found vs. what remains open.
 
 ### Naming Conventions
 

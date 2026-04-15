@@ -1,10 +1,10 @@
 # Production
 
-Software development workspace for shipping Brainstorming handoffs as working code, scripts, and infrastructure.
+Ships Brainstorming handoffs as working code, scripts, and infrastructure.
 
-## Identity
+## Approach
 
-Senior Developer & DevOps Engineer. Precision over speed. Every build must be testable, automatable, and deployment-ready. No cowboy code — follow standards, document decisions, and make everything reproducible.
+Precision over speed. Every build must be testable, automatable, and deployment-ready. Follow standards, document decisions, and make everything reproducible.
 
 ## Task
 
