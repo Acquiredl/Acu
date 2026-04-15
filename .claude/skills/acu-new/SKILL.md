@@ -88,6 +88,29 @@ If the user provided a detailed spec or handoff, extract these from it. Otherwis
    - What is a single run of this pipeline called? (engagement, project, campaign, sprint, etc.)
    - Who operates it? (tester, analyst, author, engineer, etc.)
 
+8. **Semantic evaluation** (optional)
+   - Does this pipeline need LLM-based quality evaluation beyond structural checks? (yes/no, default: no)
+   - If yes: which stages should have semantic evaluation? (default: the stage before final + the final stage)
+   - Evaluation chain: stage only, stage + pipeline (faculty head), or stage + pipeline + system (Sauron)? (default: stage only)
+   - If pipeline tier included: what pipeline-level criteria should be evaluated? (coherence across stages, strategic fit, completeness)
+   - This sets the pipeline-level `gate_type`, `eval_chain`, `pipeline_eval_criteria`, and determines which stages get `eval_criteria` and `eval-gate.md`
+
+9. **Observability** (optional)
+   - Enable Langfuse trace emission for this pipeline? (yes/no, default: no)
+   - This sets `observability: true` in pipeline frontmatter and generates `observability.env` config file
+   - Requires: `npm install` in framework root for the `langfuse` package, and a running Langfuse instance (self-hosted or cloud)
+
+10. **Parallel execution** (optional)
+    - Does this pipeline have stages that should use parallel workers? (yes/no, default: no)
+    - If yes, for each parallel stage ask:
+      a. Strategy: `split_by_subtask` (team splits work), `competing` (individuals same prompt), or `competing_teams` (teams compete)?
+      b. How many workers? (or teams x workers for competing_teams)
+      c. For `split_by_subtask`/`competing_teams`: what are the subtasks? (one per worker)
+      d. Worker personas: what thinking angles should workers use? (optional, one per worker)
+      e. Model(s): same model for all, or different models per worker/team?
+    - This sets `parallel_eligible: true` in both stage and pipeline frontmatter and generates the `fan_out` block
+    - For `competing`/`competing_teams` strategies: the stage MUST have non-empty `eval_criteria` (selection needs scoring criteria)
+
 ### Step 2.5: CLASSIFY — Match domain to archetype
 
 After collecting the 7 inputs, read `_templates/archetypes.yaml` and match the domain to the closest archetype based on stage pattern and domain flags:
@@ -146,6 +169,24 @@ Quality gates:
   {Stage2} → {Stage3}: {what it checks}
   ...
 
+Frontmatter schema:
+  Pipeline: pipeline={Name}, archetype={archetype}, gate_type={structural|semantic|composite}, tools_enabled={yes|no}
+  Stages: role=worker (default), inputs/outputs chained from stage order, gate_criteria from exit gates
+
+Evaluation: (omit if gate_type is structural)
+  Gate type: {semantic|composite}
+  Stages with eval: {list of stages with semantic evaluation}
+  Eval model: {sonnet|opus|haiku} (default: sonnet)
+  Max retries: 1
+
+Observability: {yes — Langfuse trace emission | no}
+
+Parallel stages: (omit if none)
+  {StageName}: {strategy} — {N} workers
+    Subtasks: {list, if split_by_subtask or competing_teams}
+    Personas: {list, if any}
+    Models: {model config}
+
 Graveyard warnings: (omit if none match)
   - {warning from Step 2.7, if any}
 ```
@@ -193,6 +234,26 @@ When filling `{{EXIT_GATE_CRITERIA}}` and `{{STAGE_CONSTRAINTS}}`, enforce these
 - **Constraints** must start with a verb: Never, Always, Only, Do not. Not "Security is important."
 - **On Gate Failure** section is included automatically by the template — do not remove or modify it.
 
+**K. Semantic evaluation — eval_criteria and eval-gate.md:**
+When the pipeline's `gate_type` is `semantic` or `composite` (from Input 8):
+- Every stage marked for semantic evaluation must have non-empty `eval_criteria` in its CLAUDE.md frontmatter. These are semantic quality criteria requiring LLM judgment — separate from structural `gate_criteria`.
+- Derive `eval_criteria` from the exit gate prose: structural criteria stay in `gate_criteria` (file existence, word counts), semantic criteria go in `eval_criteria` (quality of reasoning, coherence, relevance).
+- Generate `eval-gate.md` in the stage directory from `_templates/eval-gate.md.template` for each stage with evaluation.
+- Fill `{{PIPELINE_GATE_TYPE}}` in pipeline CLAUDE.md (default `"structural"`).
+- Fill `{{PIPELINE_EVAL_MODEL}}` in pipeline CLAUDE.md (default `"sonnet"`).
+- Fill stage frontmatter: `{{FRONTMATTER_EVAL_CRITERIA}}` (semantic criteria or `  []`), `{{MAX_RETRIES}}` (default `1`), `{{STAGE_GATE_TYPE}}` (default `"inherit"`), `{{EVAL_MODEL}}` (default `"inherit"`).
+- Stages NOT marked for evaluation get `eval_criteria: []` and `gate_type: "inherit"` — they inherit the pipeline default and fall back to structural-only if not overridden.
+
+**L. Parallel stages — fan_out configuration and selection requirements:**
+When a stage has `parallel_eligible: true` (from Input 10):
+- Generate the `{{FAN_OUT_BLOCK}}` with the strategy-specific YAML block (see `_templates/PLACEHOLDERS.md` → "Fan-Out Block" for the three shapes).
+- Fill `{{PARALLEL_ELIGIBLE}}` as `true` for the stage and `true` for the pipeline (if any stage is parallel).
+- For `competing` and `competing_teams` strategies: the stage MUST have non-empty `eval_criteria` because selection needs scoring criteria. Derive eval_criteria from exit gate prose if not already present.
+- For `split_by_subtask`: verify subtask count matches worker count.
+- For `competing`: if `worker_personas` provided, length must match worker count. If `worker_models` provided, length must match worker count.
+- For `competing_teams`: subtask count must match `workers_per_team`. If `team_models` provided, length must match `teams`.
+- Stages NOT marked for parallel get `parallel_eligible: false` with no `fan_out` block (empty `{{FAN_OUT_BLOCK}}`).
+
 ---
 
 **Phase 0.5 — Conditional Expansion (from archetype + domain flags):**
@@ -212,8 +273,19 @@ Apply only the conditions that match — do not add constraints for conditions t
 **Phase 1 — Structure:**
 1. Create `pipelines/{Name}/` directory tree
 2. Create stage directories using `{N}-{Name}/` naming (see Rule A)
-3. Generate pipeline `CLAUDE.md` from `_templates/pipeline-claude.md.template`
-4. Generate per-stage `CLAUDE.md` files from `_templates/stage-claude.md.template`
+3. Generate pipeline `CLAUDE.md` from `_templates/pipeline-claude.md.template`. Fill frontmatter placeholders (Rule J):
+   - `{{ARCHETYPE_NAME}}`: matched archetype key from Step 2.5, or `"custom"`
+   - `{{FRONTMATTER_STAGES}}`: YAML list of lowercase stage names, 2-space indent (e.g., `  - "research"\n  - "draft"`)
+   - `{{FRONTMATTER_STANDARDS}}`: YAML list of standards from Input 5, same format. If none: `  []`
+   - `{{HAS_TOOLING}}`: bare `true` or `false` (not quoted)
+4. Generate per-stage `CLAUDE.md` files from `_templates/stage-claude.md.template`. Fill frontmatter placeholders (Rule J):
+   - `{{STAGE_ROLE}}`: `"worker"` (default), `"specialist"` for domain-expertise stages, `"orchestrator"` for coordination stages
+   - `{{FRONTMATTER_INPUTS}}`: For stage 1: `  - name: "intake.yaml"\n    required: true`. For stage N: prior stage's output(s) as inputs.
+   - `{{FRONTMATTER_OUTPUTS}}`: Stage deliverable, e.g., `  - name: "draft.md"\n    required: true`
+   - `{{FRONTMATTER_TOOLS}}`: Tool names from Input 4 filtered to this stage, e.g., `["nmap", "nikto"]`. If none: `[]`
+   - `{{FRONTMATTER_GATE_CRITERIA}}`: Terse, parseable form of exit gate criteria. Each criterion: `"{artifact} {condition}"`. Generated simultaneously with `{{EXIT_GATE_CRITERIA}}` prose from the same domain analysis.
+   - `{{FRONTMATTER_ENTRY_CRITERIA}}`: Prior stage's `gate_criteria`. For stage 1: `[]`
+   - `{{FRONTMATTER_CONSTRAINTS}}`: List form of stage constraints. Generated simultaneously with `{{STAGE_CONSTRAINTS}}` prose.
 
 **Phase 2 — Templates:**
 5. Generate intake document from `_templates/intake.yaml.template` (apply Rule D for reporting block)
@@ -232,6 +304,12 @@ Apply only the conditions that match — do not add constraints for conditions t
 9a. Generate `gates/pipeline-status.sh` from `_templates/pipeline-status.sh.template`. No new placeholders — uses existing `{{UNITS_DIR}}`, `{{UNIT_LOWER}}`, and `{{UNIT_NAME}}`.
 10. Generate `gates/gate-{last-stage-lower}-complete.sh` from `_templates/gate.sh.template`. Use `{{TO_STAGE}}` = `"Complete"` and `{{GATE_CHECKS}}` = checks for: final deliverable artifact exists, required metadata/structure, no TODO/FIXME/PLACEHOLDER markers (colon-suffixed), no [VERIFY] markers (backtick-exclusion), all pipeline artifacts present, status.yaml shows complete.
 11. Make all gate scripts executable (chmod +x gates/*.sh gates/pipeline-status.sh)
+
+**Phase 3.5 — Evaluation templates (conditional):**
+11a. If `gate_type` is `semantic` or `composite`: for each stage marked for evaluation, generate `eval-gate.md` in the stage directory from `_templates/eval-gate.md.template`. Fill:
+   - `{{EVAL_DELIVERABLES}}`: bulleted list of files from the stage's `outputs` field
+   - `{{EVAL_CRITERIA_PROSE}}`: numbered list of `eval_criteria` in prose form
+   - `{{PIPELINE_EVAL_NOTE}}`: `"Not implemented. Reserved for future pipeline-level evaluation tier."`
 
 **`{{DOMAIN_STATUS_UPDATES}}` guidance:**
 This placeholder in advance.sh captures domain-specific status.yaml fields that need updating
@@ -253,12 +331,12 @@ after the standard stage completion updates.
 16. Create a sample unit directory: `{units_dir}/001-sample/` with both `intake.yaml` and `status.yaml` filled from templates (Rule F)
 
 **Phase 6 — Registration:**
-17. Add the new pipeline to `pipelines/CLAUDE.md` (the index)
+17. Add the new pipeline to `s:\Acui\pipelines\CLAUDE.md` (the index)
     - Add a row to the Available Pipelines table
     - Add a row to the Routing Table
 
 **Phase 6.5 — Metadata:**
-18. Read the current template version from `_templates/VERSION`
+18. Read the current template version from `s:\Acui\_templates\VERSION`
 19. Write `.acu-meta.yaml` to the pipeline root with:
     - `generated_by: acu-new`
     - `template_version:` from VERSION file
@@ -294,10 +372,27 @@ After building, verify:
 - [ ] Lifecycle section references exact file paths and gate commands (not vague instructions)
 - [ ] All gate scripts use `[PASS]` / `[FAIL]` / `[WARN]` bracketed format
 - [ ] Approaches tables contain domain-specific content (no generic filler)
+- [ ] Pipeline CLAUDE.md has YAML frontmatter with all required fields: `pipeline`, `version`, `domain`, `archetype`, `stages`, `unit_name`, `boundary_type`, `tools_enabled` (Rule J)
+- [ ] Every stage CLAUDE.md has YAML frontmatter with all required fields: `stage`, `role`, `version`, `outputs`, `gate_criteria` (Rule J)
+- [ ] Frontmatter `stages` list matches the actual stage directories created
+- [ ] Frontmatter `gate_criteria` in each stage correspond to the `## Exit Gate` prose section
+- [ ] No `{{` placeholder strings in frontmatter sections
+- [ ] If gate_type is semantic/composite: `eval_criteria` is non-empty for relevant stages (Rule K)
+- [ ] If gate_type is semantic/composite: `eval-gate.md` exists in relevant stage directories (Rule K)
+- [ ] `max_retries` is a non-negative integer in all stage frontmatter
+- [ ] If observability enabled: `observability.env` exists in pipeline root, `observability.env` is in `.gitignore`
+- [ ] Pipeline frontmatter `observability` field matches user choice (true/false)
+- [ ] Pipeline frontmatter `eval_chain` matches user choice (default: `["stage"]`)
+- [ ] If eval_chain includes "pipeline": `pipeline_eval_criteria` is non-empty in pipeline frontmatter
+- [ ] If eval_chain includes "pipeline": `eval-pipeline.md` exists in pipeline root
+- [ ] If parallel stages configured: `parallel_eligible: true` in both stage and pipeline frontmatter (Rule L)
+- [ ] If parallel stages configured: `fan_out` block present with all strategy-required fields (Rule L)
+- [ ] If competing/competing_teams: `eval_criteria` is non-empty for selection (Rule L)
+- [ ] If worker_personas/worker_models provided: list lengths match worker count (Rule L)
 
 ### Step 6: REFLECT — Log what was learned
 
-Append observations to `Brainstorming/REFLECTIONS.md` about:
+Append observations to `s:\Acui\Brainstorming\REFLECTIONS.md` about:
 - What worked well in the generation process
 - What was missing from templates that had to be created manually
 - Domain-specific patterns that should be added to templates for future generators
@@ -317,6 +412,8 @@ Append observations to `Brainstorming/REFLECTIONS.md` about:
 - [ ] Schema files generated: templates/intake.schema.yaml and templates/status.schema.yaml with domain-specific required fields
 - [ ] gates/pipeline-status.sh exists and is executable
 - [ ] `.acu-meta.yaml` exists with template_version, stages, structural_files, and known_deviations
+- [ ] Pipeline and all stage CLAUDE.md files have YAML frontmatter with required fields (Rule J)
+- [ ] Frontmatter `gate_criteria` correspond to exit gate prose and gate script checks
 - [ ] REFLECTIONS.md was updated with generation observations
 
 ## Exit Protocol
@@ -327,7 +424,7 @@ Output:
 ACU GENERATE COMPLETE
 
 Pipeline: {name}
-Location: pipelines/{Name}/
+Location: s:\Acui\pipelines\{Name}\
 Stages: {N} stages ({Stage1} → ... → {StageN})
 Tooling: {yes — N tools | no}
 Gates: {N} gate scripts

@@ -223,6 +223,58 @@ function aggregateFailureCauses(units) {
     .sort((a, b) => b.count - a.count);
 }
 
+// ── Semantic Evaluation Metrics ───────────────────────────
+
+function aggregateSemanticEvals(units) {
+  const evals = {};
+  for (const u of units) {
+    for (const e of u.entries) {
+      if (e.layer !== 'semantic-evaluation') continue;
+      if (!evals[e.gate]) evals[e.gate] = { pass: 0, fail: 0, scores: [], retries: [], models: new Set() };
+      if (e.result === 'PASS') evals[e.gate].pass++;
+      else if (e.result === 'FAIL') evals[e.gate].fail++;
+      if (typeof e.score === 'number') evals[e.gate].scores.push(e.score);
+      if (typeof e.retry === 'number') evals[e.gate].retries.push(e.retry);
+      if (e.model) evals[e.gate].models.add(e.model);
+    }
+  }
+  return Object.fromEntries(
+    Object.entries(evals).map(([gate, d]) => [gate, {
+      ...d,
+      models: [...d.models],
+      avgScore: d.scores.length > 0 ? d.scores.reduce((a, b) => a + b, 0) / d.scores.length : null,
+      avgRetries: d.retries.length > 0 ? d.retries.reduce((a, b) => a + b, 0) / d.retries.length : null,
+    }])
+  );
+}
+
+function computeFullStackFirstPass(units) {
+  // A gate is "full-stack first-pass" only if BOTH structural and semantic pass on first attempt
+  const rates = {};
+  for (const u of units) {
+    const seenStructural = {};
+    const seenSemantic = {};
+    for (const e of u.entries) {
+      if (!e.layer && !seenStructural[e.gate]) {
+        seenStructural[e.gate] = e.result;
+      }
+      if (e.layer === 'semantic-evaluation' && !seenSemantic[e.gate]) {
+        seenSemantic[e.gate] = e.result;
+      }
+    }
+    for (const gate of new Set([...Object.keys(seenStructural), ...Object.keys(seenSemantic)])) {
+      if (!rates[gate]) rates[gate] = { firstPass: 0, total: 0 };
+      if (seenStructural[gate] || seenSemantic[gate]) {
+        rates[gate].total++;
+        if (seenStructural[gate] === 'PASS' && (!seenSemantic[gate] || seenSemantic[gate] === 'PASS')) {
+          rates[gate].firstPass++;
+        }
+      }
+    }
+  }
+  return rates;
+}
+
 // ── Pipeline Metrics ──────────────────────────────────────
 
 function computeCompletionRates(units) {
@@ -424,6 +476,39 @@ function printReport(units) {
     console.log();
   }
 
+  // Semantic evaluation metrics
+  const semanticEvals = aggregateSemanticEvals(classified);
+  const semanticGates = Object.entries(semanticEvals);
+  if (semanticGates.length > 0) {
+    console.log('Semantic evaluation metrics:');
+    console.log(pad('  Gate', 30) + pad('Pass', 6) + pad('Fail', 6) + pad('Avg Score', 10) + pad('Avg Retries', 12) + 'Models');
+    console.log('  ' + '-'.repeat(68));
+    for (const [name, d] of semanticGates) {
+      const score = d.avgScore !== null ? d.avgScore.toFixed(2) : 'N/A';
+      const retries = d.avgRetries !== null ? d.avgRetries.toFixed(1) : 'N/A';
+      console.log(pad('  ' + name, 30) + pad(String(d.pass), 6) + pad(String(d.fail), 6) + pad(score, 10) + pad(retries, 12) + d.models.join(', '));
+    }
+    console.log();
+
+    // Full-stack first-pass rates
+    const fullStack = computeFullStackFirstPass(classified);
+    const fsSorted = Object.entries(fullStack).sort((a, b) => {
+      const ra = a[1].total > 0 ? a[1].firstPass / a[1].total : 1;
+      const rb = b[1].total > 0 ? b[1].firstPass / b[1].total : 1;
+      return ra - rb;
+    });
+    if (fsSorted.length > 0) {
+      console.log('Full-stack first-pass rate (structural + semantic on first attempt):');
+      console.log(pad('  Gate', 30) + pad('1st Pass', 10) + pad('Total', 8) + 'Rate');
+      console.log('  ' + '-'.repeat(52));
+      for (const [name, r] of fsSorted) {
+        const pct = r.total > 0 ? (r.firstPass / r.total * 100).toFixed(0) + '%' : 'N/A';
+        console.log(pad('  ' + name, 30) + pad(String(r.firstPass), 10) + pad(String(r.total), 8) + pct);
+      }
+      console.log();
+    }
+  }
+
   // ── Pipeline metrics ──
   const completionRates = computeCompletionRates(classified);
   const stageVelocity = computeStageVelocity(cycleTimes);
@@ -494,12 +579,14 @@ function printJSON(units) {
   const completed  = classified.filter(u => u.status?.unitStatus === 'complete');
   const clean      = completed.filter(u => u.classification === 'CLEAN');
 
-  const firstPassRates  = computeFirstPassRates(classified);
-  const retryTimes      = computeRetryTimes(classified);
-  const failureCauses   = aggregateFailureCauses(classified);
-  const completionRates = computeCompletionRates(classified);
-  const stageVelocity   = computeStageVelocity(cycleTimes);
-  const stalls          = detectStalls(classified);
+  const firstPassRates   = computeFirstPassRates(classified);
+  const retryTimes       = computeRetryTimes(classified);
+  const failureCauses    = aggregateFailureCauses(classified);
+  const completionRates  = computeCompletionRates(classified);
+  const stageVelocity    = computeStageVelocity(cycleTimes);
+  const stalls           = detectStalls(classified);
+  const semanticEvals    = aggregateSemanticEvals(classified);
+  const fullStackRates   = computeFullStackFirstPass(classified);
 
   console.log(JSON.stringify({
     scan_date: new Date().toISOString(),
@@ -518,8 +605,10 @@ function printJSON(units) {
     gates,
     gate_analytics: {
       first_pass_rates: firstPassRates,
+      full_stack_first_pass: fullStackRates,
       retry_times: retryTimes.map(t => ({ ...t, duration: formatDuration(t.ms) })),
       failure_causes: failureCauses,
+      semantic_evaluation: semanticEvals,
     },
     pipeline_metrics: {
       completion_rates: completionRates,

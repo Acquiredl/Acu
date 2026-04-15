@@ -8,6 +8,356 @@ pipelines up to the current template standard without touching domain-specific c
 
 ---
 
+## 2026.04.15.5 — Hierarchical Evaluation: Pipeline-level + Sauron-level tiers
+
+Source: University vision — completes the three-tier evaluation hierarchy: stage (teacher), pipeline (faculty head), system (Sauron/uniboss). Work flows up through increasingly strict evaluation before delivery.
+
+### What changed
+
+**pipeline-claude.md.template** — Two new frontmatter fields:
+- `pipeline_eval_criteria`: criteria for the faculty head evaluation (coherence across stages, strategic fit)
+- `eval_chain`: list of evaluation tiers to run automatically (`["stage"]`, `["stage", "pipeline"]`, `["stage", "pipeline", "system"]`)
+- 2 new placeholders: `{{PIPELINE_EVAL_CRITERIA}}`, `{{EVAL_CHAIN}}`
+- Version bump: 2026.04.15.4 → 2026.04.15.5
+
+**New template: eval-pipeline.md.template** — Pipeline-level evaluation prompt (Faculty Head role). Reads all stage deliverables as a combined body and assesses coherence, completeness, and strategic fit against pipeline_eval_criteria.
+
+**New file: Sauron/eval-system.md** — System-level evaluation prompt (Uniboss role). The final gate — compares final deliverable against original intake.yaml request. Strictest evaluator in the chain.
+
+**Sauron/CLAUDE.md** — Added YAML frontmatter with `system_eval_criteria` (4 default alignment criteria) and `eval_model: "opus"` (strongest model for the most important judgment).
+
+**acu-eval SKILL.md** — Major extension (v1.0 → v2.0):
+- `--tier stage|pipeline|system` flag for manual tier selection
+- Automatic eval_chain: reads pipeline frontmatter, runs tiers in order
+- Tier-aware context loading: stage reads stage deliverable, pipeline reads ALL deliverables, system reads final deliverable vs intake
+- Separate result files per tier: `.eval-result.yaml`, `.eval-pipeline-result.yaml`, `.eval-system-result.yaml`
+- Chain logic: each tier passes → next tier runs; failure at any tier stops the chain
+- Evaluator-Optimizer retry at each tier with tier-appropriate revision targets
+
+**advance.sh.template** — Multi-tier eval detection:
+- Reads `eval_chain` from pipeline frontmatter
+- Checks all tier result files based on eval_chain requirements
+- `log_eval_tier()` helper for per-tier audit logging and OTel emission with `eval_tier` metadata
+- Only finalizes when ALL required tiers pass
+
+**acu-new SKILL.md** — Input 8 extended with eval_chain configuration, pipeline_eval_criteria generation, eval-pipeline.md template generation.
+
+**acu-check SKILL.md** — 2 new checks (20 → 22):
+- Check 21: Pipeline eval criteria presence when eval_chain includes "pipeline"
+- Check 22: System eval configuration (Sauron criteria + eval-system.md) when eval_chain includes "system"
+
+**PLACEHOLDERS.md** — Documents `{{PIPELINE_EVAL_CRITERIA}}` and `{{EVAL_CHAIN}}` placeholders.
+
+**_roadmap/CLAUDE.md** — Added `pipeline_eval_criteria: []` and `eval_chain: ["stage"]` defaults.
+
+### Design decisions
+
+- **Extend /acu-eval, not new skills** — The evaluation mechanism is identical at every tier. Only the scope (what gets read) and criteria (what gets checked) change. A `--tier` flag is cleaner than three separate skills.
+- **Separate result files per tier** — `.eval-result.yaml`, `.eval-pipeline-result.yaml`, `.eval-system-result.yaml` don't overwrite each other. advance.sh checks all required tiers are present and passed.
+- **eval_chain controls automation** — Default `["stage"]` preserves existing behavior. Adding `"pipeline"` or `"system"` enables higher tiers. Configurable per pipeline.
+- **Sauron defaults to opus** — The system-level evaluation is the most important judgment in the chain. It deserves the strongest model by default.
+- **Pipeline eval reads ALL deliverables** — Not just the final one. The faculty head evaluates the combined work across all stages for coherence. Stage-level quality was already verified.
+
+### Patches
+
+```yaml
+patches:
+  - id: eval-chain-pipeline-v1
+    description: "Add pipeline_eval_criteria and eval_chain to pipeline CLAUDE.md frontmatter"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Pipeline eval fields adopted through regeneration or manual addition."
+
+  - id: eval-chain-advance-v1
+    description: "Add multi-tier eval detection to advance.sh"
+    applies_to: "gates/advance.sh"
+    type: regenerate_from_template
+    template: "advance.sh.template"
+    requires_meta: [stages, unit_lower, unit_upper, unit_name]
+    note: "advance.sh changes are substantial — regeneration is safer than patching."
+```
+
+---
+
+## 2026.04.15.4 — Parallel Stages: Multi-worker fan-out within stages
+
+Source: Research synthesis (Improvement 4: Parallel Stages) + University vision — adds parallel execution within pipeline stages. Three strategies: `split_by_subtask` (team cooperation), `competing` (individual competition with diverse personas/models), and `competing_teams` (team competition with inter-team selection).
+
+### What changed
+
+**stage-claude.md.template** — `parallel_eligible` activated from hardcoded `false` to placeholder `{{PARALLEL_ELIGIBLE}}`. New `{{FAN_OUT_BLOCK}}` placeholder for strategy-specific parallel configuration including `worker_personas` for diverse thinking angles.
+
+**pipeline-claude.md.template** — `parallel_eligible` activated as `{{PARALLEL_ELIGIBLE}}` placeholder (pipeline-level summary flag).
+
+**New skill: /acu-parallel** — Parallel stage executor with three strategies:
+- `split_by_subtask`: spawn N workers with different subtasks, synthesize via merge agent
+- `competing`: spawn N workers with same prompt + different personas/models, select best via evaluator
+- `competing_teams`: teams split internally (parallel workers), merge per-team, then compete externally
+- Worker retry with bounded retries (default 1). Disqualify/fail per strategy.
+- Worker outputs stored in `{unit-dir}/.parallel/` audit trail.
+- OTel worker/merge/select spans when observability enabled.
+
+**emit-trace.mjs** — `--type parallel` added with three sub-modes: `--worker` (worker span), `--merge` (merge span), `--select` (selection span with winner/scores). New arguments: `--strategy`, `--subtask`, `--persona`.
+
+**acu-new SKILL.md** — Input 10 (parallel configuration). Rule L (selection requires eval_criteria, fan_out field validation). Proposal shows parallel config. Generator constructs `{{FAN_OUT_BLOCK}}` from user inputs.
+
+**acu-check SKILL.md** — 2 new checks (18 → 20):
+- Check 19: fan_out config validity (strategy, field lengths, max_worker_retries)
+- Check 20: eval_criteria presence for parallel selection stages
+
+**PLACEHOLDERS.md** — Documents `{{PARALLEL_ELIGIBLE}}`, `{{FAN_OUT_BLOCK}}`, all three fan_out block shapes with field descriptions, and worker output storage conventions.
+
+**ROUTES.yaml** — Added `/acu-parallel` skill entry.
+
+**THREAT-MODEL.md** — Parallel execution threat surface: output poisoning, resource exhaustion, cost escalation, persona bias, worker isolation.
+
+### Design decisions
+
+- **Dedicated /acu-parallel skill** — Parallel execution (spawning workers, merging, selecting) is separate from gate evaluation (/acu-eval). They compose but don't merge.
+- **Three strategies as composable primitives** — `competing_teams` is literally strategy 1 nested inside strategy 2. Build synthesize + select as primitives, compose them.
+- **Teams sequential, workers parallel** — Spawning all teams' workers simultaneously (6+ agents) exceeds practical limits. Teams run one at a time; workers within a team run in parallel.
+- **fan_out block absent when not parallel** — Clean frontmatter for non-parallel stages. The block only appears when parallel_eligible is true.
+- **worker_personas for diversity** — Different thinking angles per worker (analytical, creative, critical) even when using the same model. Combined with worker_models for model diversity.
+- **Anonymous selection** — Candidates presented as "A", "B", "C" to the evaluator to avoid positional or identity bias.
+- **advance.sh unchanged** — Parallel work happens before the gate. The gate evaluates the final deliverable without knowing how it was produced. This is the key architectural advantage.
+
+### Patches
+
+```yaml
+patches:
+  - id: parallel-stage-v1
+    description: "Activate parallel_eligible and fan_out in stage CLAUDE.md frontmatter"
+    applies_to: "*/CLAUDE.md"
+    type: informational
+    note: "Stage parallel fields adopted through regeneration. Existing stages keep parallel_eligible: false."
+
+  - id: parallel-pipeline-v1
+    description: "Activate parallel_eligible in pipeline CLAUDE.md frontmatter"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Pipeline parallel_eligible adopted through regeneration or manual addition."
+```
+
+---
+
+## 2026.04.15.3 — Observability: OTel trace emission + Langfuse integration
+
+Source: Research synthesis (Improvement 3: Observability) — adds OTel-compatible trace emission to Langfuse alongside existing `.audit-log.jsonl` files. Purely additive, opt-in per pipeline, best-effort and async.
+
+### What changed
+
+**New file: emit-trace.mjs** — Langfuse trace emission utility. Called from advance.sh after audit log writes when `observability: true`. Takes structured data (gate transition, semantic eval, stage entry) and emits it as a Langfuse trace/span. Uses the Langfuse JS SDK for batching and async delivery. Best-effort — never blocks gate transitions.
+
+**New file: export-traces.mjs** — Batch audit log exporter. Reads `.audit-log.jsonl` files across all pipelines and backfills Langfuse. Deduplicates by span ID — safe to re-run. Supports `--pipeline`, `--since`, and `--dry-run` flags.
+
+**New file: observability.env.template** — Langfuse connection config template (host, public key, secret key). Generated by `/acu-new` when observability is enabled. Added to `.gitignore` (contains secrets).
+
+**New file: package.json** — Adds `langfuse` npm dependency for trace emission.
+
+**pipeline-claude.md.template** — `observability` field activated from hardcoded `false` to placeholder `{{OBSERVABILITY}}`. Per-pipeline opt-in.
+
+**advance.sh.template** — Three OTel emission points added:
+- After structural gate audit log write: emits gate span with check results
+- After semantic evaluation audit log write: emits eval span with score, model, retry
+- After status.yaml update: emits stage-entered event for the next stage
+All emission is gated on `observability: true` in pipeline frontmatter and wrapped in error suppression.
+
+**acu-eval SKILL.md** — Step 5.5 added: emit trace after writing `.eval-result.yaml` when observability enabled.
+
+**acu-new SKILL.md** — Input 9 added (observability opt-in). Proposal shows observability config. When enabled: generates `observability.env`, adds to `.gitignore` and `.acu-meta.yaml`. Fills `{{OBSERVABILITY}}` placeholder.
+
+**acu-check SKILL.md** — 2 new checks (16 → 18):
+- Check 17: Observability configuration — `emit-trace.mjs` exists, `observability.env` exists
+- Check 18: Trace emission in advance.sh — contains `emit-trace` or `OBSERVABILITY` patterns
+
+**PLACEHOLDERS.md** — Documents `{{OBSERVABILITY}}` placeholder and observability.env template. Explains the Langfuse configuration flow.
+
+**ROUTES.yaml** — Added `traces`, `langfuse`, `otel` keywords to observe skill.
+
+**THREAT-MODEL.md** — New "Observability Threat Surface" section documenting credential handling, data sensitivity, and the best-effort design principle.
+
+### Design decisions
+
+- **Parallel copy, not primary** — `.audit-log.jsonl` is always written first and is the source of truth. OTel emission is the parallel stream for dashboard visibility. If Langfuse is down, nothing breaks.
+- **Best-effort, async** — `emit-trace.mjs` returns immediately. The Langfuse SDK batches and flushes in the background. Errors print `[WARN]` to stderr, never block gates.
+- **Per-pipeline opt-in** — `observability: true/false` in pipeline frontmatter. Enable one pipeline at a time without affecting others.
+- **Langfuse SDK, not raw OTel** — The Langfuse JS SDK wraps OTel conventions and adds LLM-specific features (scores, model tracking). Data is structured so it's also valid OTel if you swap backends later.
+- **Deduplicable exports** — `export-traces.mjs` uses `{pipeline}-{unit}-{gate}-{ts}` as span ID, making re-runs safe.
+- **Trace hierarchy** — One trace per work unit lifecycle, with child spans for stages, gates, and events for individual checks. Enables drill-down from pipeline → stage → gate → check in Langfuse.
+
+### Patches
+
+```yaml
+patches:
+  - id: observability-advance-v1
+    description: "Add OTel trace emission to advance.sh"
+    applies_to: "gates/advance.sh"
+    type: regenerate_from_template
+    template: "advance.sh.template"
+    requires_meta: [stages, unit_lower, unit_upper, unit_name]
+    note: "advance.sh changes are substantial — regeneration is safer than patching."
+
+  - id: observability-pipeline-v1
+    description: "Activate observability field in pipeline CLAUDE.md frontmatter"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Pipeline CLAUDE.md observability field adopted through regeneration or manual addition."
+```
+
+---
+
+## 2026.04.15.2 — Smarter Gates: Semantic evaluation layer
+
+Source: Research synthesis (Improvement 2: Smarter Gates) — LLM-based quality evaluation added as an optional second layer on top of structural bash gates. Implements the Evaluator-Optimizer pattern from the university vision (stage-level "teacher grading" tier).
+
+### What changed
+
+**stage-claude.md.template** — Four new frontmatter fields:
+- `eval_criteria`: list of semantic evaluation criteria requiring LLM judgment (separate from structural `gate_criteria`)
+- `max_retries`: integer controlling Evaluator-Optimizer loop iterations (default: 1)
+- `gate_type`: stage-level override for pipeline gate_type (`"structural"`, `"semantic"`, `"composite"`, `"inherit"`)
+- `eval_model`: model for semantic evaluation (`"opus"`, `"sonnet"`, `"haiku"`, `"inherit"`)
+- 4 new placeholders: `{{FRONTMATTER_EVAL_CRITERIA}}`, `{{MAX_RETRIES}}`, `{{STAGE_GATE_TYPE}}`, `{{EVAL_MODEL}}`
+- Version bump: 2026.04.15.1 → 2026.04.15.2
+
+**pipeline-claude.md.template** — Two fields activated:
+- `gate_type` changed from hardcoded `"structural"` to placeholder `{{PIPELINE_GATE_TYPE}}`
+- `eval_model` added as `{{PIPELINE_EVAL_MODEL}}` (pipeline default for all stages)
+- Version bump: 2026.04.15.1 → 2026.04.15.2
+
+**New template: eval-gate.md.template** — Per-stage evaluation prompt template. Placed in stage directories by `/acu-new` when gate_type is semantic/composite. Contains evaluator role, deliverable list, criteria, output format, and eval_tier field for future hierarchical evaluation.
+
+**advance.sh.template** — Semantic evaluation phase:
+- `read_frontmatter_field()` function for reading YAML frontmatter from CLAUDE.md files (no yq dependency)
+- Eval detection: after structural pass, reads gate_type from stage/pipeline frontmatter. If semantic/composite, writes `.eval-request.md` and exits code 2
+- Eval consumption: on re-run with `.eval-result.yaml` present, reads result. PASS logs to audit and proceeds. FAIL logs and exits 1
+- Audit log enrichment: semantic evaluation results logged with `"layer":"semantic-evaluation"` plus score, model, retry fields
+- Version bump: 2026.04.15.3 → 2026.04.15.2
+
+**New skill: /acu-eval** — Full gate flow orchestrator:
+- Runs structural gate (advance.sh), interprets exit codes (0=done, 1=fail, 2=eval needed)
+- Reads eval_criteria, resolves eval_model inheritance chain (stage → pipeline → session)
+- Spawns isolated subagent with resolved model for independent evaluation
+- Evaluator-Optimizer loop: on FAIL with retries remaining, constructs revision prompt, revises deliverable, re-evaluates
+- Writes `.eval-result.yaml` with score, per-criterion results, model used
+- Re-runs advance.sh to finalize status update on PASS
+
+**acu-new SKILL.md** — Semantic gate generation:
+- Input 8 added: semantic evaluation configuration (gate_type, which stages, eval model)
+- Rule K: eval_criteria required when gate_type is semantic/composite
+- Phase 3.5: generate eval-gate.md for relevant stages from template
+- Proposal shows evaluation configuration
+- Verify checklist adds eval_criteria and eval-gate.md checks
+
+**acu-check SKILL.md** — 3 new checks (13 → 16):
+- Check 14: eval_criteria presence when gate_type is semantic/composite
+- Check 15: eval-gate.md existence for semantic/composite stages
+- Check 16: advance.sh eval support (contains exit 2 / eval-request handling)
+
+**PLACEHOLDERS.md** — New placeholder documentation for eval_criteria, max_retries, gate_type, eval_model (stage and pipeline levels), and eval-gate.md template placeholders. Updated static fields notes.
+
+**ROUTES.yaml** — Added `/acu-eval` skill entry with keywords.
+
+**_roadmap/** — All stage CLAUDE.md files updated with eval_criteria, max_retries, gate_type, eval_model fields. Pipeline CLAUDE.md updated with eval_model. .acu-meta.yaml bumped.
+
+### Design decisions
+
+- **eval_criteria separate from gate_criteria** — Structural criteria are bash-checkable ("file exists", "word count >= 600"). Eval criteria require LLM judgment ("analysis references specific scenes"). Mixing them would blur the structural/semantic boundary.
+- **exit code 2 for "eval needed"** — advance.sh must remain pure bash. Exit 2 is a clean signal distinct from success (0) and failure (1) that tells the orchestrating skill to perform evaluation.
+- **Evaluator-Optimizer loop in the skill, not in bash** — The revision cycle requires LLM context. Keeping it in /acu-eval preserves advance.sh as a deterministic bash script.
+- **eval_model with inheritance chain** — stage → pipeline → session model. Enables A/B testing models at every evaluation tier. The subagent approach gives evaluators isolated context independent from the stage worker.
+- **eval_tier field for future hierarchy** — `"stage"` (teacher), `"pipeline"` (faculty head), `"system"` (Sauron). Only stage-level is implemented; the schema accommodates higher tiers without changes.
+- **max_retries: 1 default** — One revision pass is the sweet spot. Zero means pure evaluation. Higher values risk diminishing returns.
+
+### Patches
+
+```yaml
+patches:
+  - id: eval-frontmatter-stage-v1
+    description: "Add eval_criteria, max_retries, gate_type, eval_model to stage CLAUDE.md frontmatter"
+    applies_to: "*/CLAUDE.md"
+    type: informational
+    note: "Stage CLAUDE.md eval fields adopted gradually. New pipelines get them automatically."
+
+  - id: eval-advance-v1
+    description: "Add semantic evaluation detection to advance.sh"
+    applies_to: "gates/advance.sh"
+    type: regenerate_from_template
+    template: "advance.sh.template"
+    requires_meta: [stages, unit_lower, unit_upper, unit_name]
+    note: "advance.sh changes are substantial — regeneration is safer than patching."
+
+  - id: eval-pipeline-gate-type-v1
+    description: "Activate gate_type and eval_model in pipeline CLAUDE.md frontmatter"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Pipeline CLAUDE.md gate_type/eval_model adopted through regeneration or manual addition."
+```
+
+---
+
+## 2026.04.15.1 — Agent Schema: YAML frontmatter for CLAUDE.md files
+
+Source: Research synthesis (Improvement 1: Agent Schema) — structured machine-readable metadata for pipeline and stage CLAUDE.md files. See `Research/acu-implementation-guide.md`.
+
+### What changed
+
+**pipeline-claude.md.template** — Frontmatter addition:
+- **YAML frontmatter block** prepended with pipeline metadata: name, domain, archetype, stages, unit name, standards, boundary type, tooling flag, plus forward-looking fields (`parallel_eligible`, `gate_type`, `observability`).
+- **4 new placeholders**: `{{ARCHETYPE_NAME}}`, `{{FRONTMATTER_STAGES}}`, `{{FRONTMATTER_STANDARDS}}`, `{{HAS_TOOLING}}`.
+- Version bump in template comment: 2026.04.11.1 → 2026.04.15.1.
+
+**stage-claude.md.template** — Frontmatter addition:
+- **YAML frontmatter block** prepended with stage metadata: name, role, inputs/outputs, tools allowed, gate criteria, entry criteria, constraints, parallel eligibility.
+- **7 new placeholders**: `{{STAGE_ROLE}}`, `{{FRONTMATTER_INPUTS}}`, `{{FRONTMATTER_OUTPUTS}}`, `{{FRONTMATTER_TOOLS}}`, `{{FRONTMATTER_GATE_CRITERIA}}`, `{{FRONTMATTER_ENTRY_CRITERIA}}`, `{{FRONTMATTER_CONSTRAINTS}}`.
+- Version bump in template comment: 2026.04.14.2 → 2026.04.15.1.
+
+**PLACEHOLDERS.md** — New "Frontmatter Placeholders" section documenting all 11 new placeholders with source, format, examples, and design guidance (terse criteria format, schema version vs template version, prose-is-authoritative principle).
+
+**acu-new SKILL.md** — Frontmatter generation:
+- **Rule J** added to structural consistency rules: every pipeline and stage CLAUDE.md must include a YAML frontmatter block.
+- Phase 1 steps 3–4 updated with detailed placeholder population instructions for both pipeline and stage frontmatter.
+- Step 3 (PROPOSE) includes frontmatter schema preview in proposal output.
+- Step 5 (VERIFY) adds 5 new frontmatter validation checks.
+- Quality Gates section adds 3 new frontmatter-related gates.
+
+**acu-check SKILL.md** — 3 new checks (10 → 13):
+- **Check 11**: Frontmatter presence — pipeline + stage CLAUDE.md files have `---` delimited YAML blocks. Severity scales with template version (WARN for pre-schema, FAIL for post-schema pipelines).
+- **Check 12**: Required frontmatter fields — validates required fields are present at both levels. Sub-check cross-references `tools_allowed` against `registry.yaml` when tooling is enabled.
+- **Check 13**: Gate criteria consistency — compares `gate_criteria` count in frontmatter against `[PASS]/[FAIL]` check count in gate scripts. WARN on mismatch.
+
+**_roadmap/** — Working example updated:
+- Pipeline CLAUDE.md and all 3 stage CLAUDE.md files (Plan, Implement, Validate) now include frontmatter blocks matching the schema.
+- `.acu-meta.yaml` bumped to template version 2026.04.15.1.
+
+### Design decisions
+
+- **Frontmatter schema version separate from template version** — The `version` field in frontmatter (`"1.0"`) tracks the shape of the YAML block, independent of the template version in `.acu-meta.yaml`. This allows frontmatter evolution without conflating it with structural template changes.
+- **Prose remains authoritative** — Frontmatter is a machine-readable projection of the prose. The LLM reads the prose for behavior guidance; scripts and Sauron read the frontmatter for validation and querying.
+- **gate_criteria as terse parseable strings** — Format: `"{artifact} {condition}"`. This keeps frontmatter compact and makes automated comparison with gate scripts feasible.
+- **WARN not FAIL for older pipelines** — Pipelines generated before 2026.04.15.1 get `[WARN]` for missing frontmatter. Pipelines generated at or after this version get `[FAIL]`.
+- **Forward-looking defaults are inert** — `parallel_eligible: false`, `gate_type: "structural"`, `observability: false` have no runtime effect today. They reserve the schema shape for Improvements 2, 3, and 4 so those changes won't require a frontmatter schema version bump.
+- **No new user questions in /acu-new** — All 11 frontmatter placeholders derive from the existing 7 domain inputs. The generator infers roles, chains inputs/outputs across stages, and derives gate criteria from the same analysis that produces the prose.
+
+### Patches
+
+```yaml
+patches:
+  - id: frontmatter-pipeline-claude-v1
+    description: "Add YAML frontmatter to pipeline CLAUDE.md files"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Pipeline CLAUDE.md frontmatter is adopted through regeneration or manual addition. Not force-patched."
+
+  - id: frontmatter-stage-claude-v1
+    description: "Add YAML frontmatter to stage CLAUDE.md files"
+    applies_to: "*/CLAUDE.md"
+    type: informational
+    note: "Stage CLAUDE.md frontmatter is adopted gradually through the review cycle, not force-patched."
+```
+
+---
+
 ## 2026.04.14.2 — Feedback loops and structured conventions
 
 Source: Strength indexing initiative — gate feedback loops and structured conventions.

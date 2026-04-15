@@ -1,3 +1,35 @@
+---
+stage: "Validate"
+role: "worker"
+version: "1.0"
+inputs:
+  - name: "implement.md"
+    required: true
+  - name: "status.yaml"
+    required: true
+outputs:
+  - name: "validate.md"
+    required: true
+tools_allowed: []
+gate_criteria:
+  - "every completed item independently verified"
+  - "/acu-check passes across all active pipelines"
+  - "success criteria from source handoff addressed"
+  - "ROADMAP.md updated with final status"
+  - "validate.md contains verification evidence"
+entry_criteria:
+  - "every item is done or deferred with reason"
+  - "no items remain in_progress without explanation"
+  - "implement.md has entry for every completed item"
+constraints:
+  - "Do not skip verification for any item"
+  - "Do not close initiative with unresolved deferred items"
+parallel_eligible: false
+eval_criteria: []
+max_retries: 1
+gate_type: "inherit"
+eval_model: "inherit"
+---
 # Validate Stage — Roadmap
 
 ## Task

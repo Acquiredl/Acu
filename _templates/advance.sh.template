@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# acu-template: advance.sh — version 2026.04.15.3
+# acu-template: advance.sh — version 2026.04.15.2
 # advance.sh — Run a stage gate and update status.yaml on pass.
 #
 # Wraps the gate scripts so that a successful gate check automatically
@@ -73,6 +73,17 @@ log_gate_checks() {
     fi
 }
 
+# --- Read frontmatter field from a CLAUDE.md file ---
+# Extracts the value of a YAML field from the frontmatter block (between --- delimiters).
+# No yq dependency — uses awk + grep.
+read_frontmatter_field() {
+    local file="$1" field="$2"
+    if [[ ! -f "$file" ]]; then echo ""; return; fi
+    local block
+    block=$(awk '/^---$/{c++;next} c==1{print} c==2{exit}' "$file")
+    echo "$block" | grep -m1 "^${field}:" | sed "s/^${field}:[[:space:]]*//" | tr -d '"' || echo ""
+}
+
 # --- Run the gate (structural) ---
 
 FEEDBACK_FILE="${{UNIT_UPPER}}_DIR/.gate-feedback.md"
@@ -112,8 +123,142 @@ fi
 log_gate_checks "$GATE_LOG" "${{UNIT_UPPER}}_DIR/.audit-log.jsonl"
 rm -f "$GATE_LOG"
 
+# --- OTel emission (if observability enabled) ---
+OBSERVABILITY=$(read_frontmatter_field "$PIPELINE_DIR/CLAUDE.md" "observability")
+if [[ "$OBSERVABILITY" == "true" ]]; then
+    OTEL_SCRIPT="$PIPELINE_DIR/../emit-trace.mjs"
+    OTEL_CONFIG="$PIPELINE_DIR/observability.env"
+    OTEL_PIPELINE=$(basename "$PIPELINE_DIR")
+    OTEL_UNIT=$(basename "${{UNIT_UPPER}}_DIR")
+    if [[ -f "$OTEL_SCRIPT" ]]; then
+        node "$OTEL_SCRIPT" \
+            --type gate \
+            --pipeline "$OTEL_PIPELINE" --unit "$OTEL_UNIT" \
+            --gate "$TRANSITION" --result "$GATE_RESULT" \
+            --layer "structural-checks" \
+            --session "$SESSION_ID" \
+            --config "$OTEL_CONFIG" \
+            2>/dev/null || echo "[WARN] OTel emission failed" >&2
+    fi
+fi
+
 # --- Clean up feedback file from previous failures ---
 rm -f "$FEEDBACK_FILE"
+
+# --- Semantic evaluation detection ---
+# If gate_type is semantic or composite, check for eval results or request evaluation.
+EVAL_REQUEST="${{UNIT_UPPER}}_DIR/.eval-request.md"
+EVAL_RESULT="${{UNIT_UPPER}}_DIR/.eval-result.yaml"
+EVAL_PIPELINE_RESULT="${{UNIT_UPPER}}_DIR/.eval-pipeline-result.yaml"
+EVAL_SYSTEM_RESULT="${{UNIT_UPPER}}_DIR/.eval-system-result.yaml"
+
+# Determine gate_type: stage-level overrides pipeline-level
+STAGE_CLAUDE="${STAGE_DIR:-$PIPELINE_DIR}/CLAUDE.md"
+[[ -d "$STAGE_DIR" ]] && STAGE_CLAUDE="$STAGE_DIR/CLAUDE.md"
+STAGE_GATE_TYPE=$(read_frontmatter_field "$STAGE_CLAUDE" "gate_type")
+if [[ "$STAGE_GATE_TYPE" == "inherit" || -z "$STAGE_GATE_TYPE" ]]; then
+    STAGE_GATE_TYPE=$(read_frontmatter_field "$PIPELINE_DIR/CLAUDE.md" "gate_type")
+fi
+
+if [[ "$STAGE_GATE_TYPE" == "semantic" || "$STAGE_GATE_TYPE" == "composite" ]]; then
+    # Read eval_chain to determine which tier result files are required
+    EVAL_CHAIN=$(read_frontmatter_field "$PIPELINE_DIR/CLAUDE.md" "eval_chain")
+
+    # Helper: log and emit a tier result
+    log_eval_tier() {
+        local tier_file="$1" tier_name="$2"
+        local t_result t_score t_model t_retry
+        t_result=$(grep -m1 "^result:" "$tier_file" | sed 's/result:[[:space:]]*//' | tr -d '"')
+        t_score=$(grep -m1 "^score:" "$tier_file" | sed 's/score:[[:space:]]*//' || echo "0")
+        t_model=$(grep -m1 "^model:" "$tier_file" | sed 's/model:[[:space:]]*//' | tr -d '"' || echo "unknown")
+        t_retry=$(grep -m1 "^retry_count:" "$tier_file" | sed 's/retry_count:[[:space:]]*//' || echo "0")
+        printf '{"ts":"%s","gate":"%s","layer":"semantic-evaluation","eval_tier":"%s","session":"%s","model":"%s","score":%s,"result":"%s","retry":%s}\n' \
+            "$TIMESTAMP" "$TRANSITION" "$tier_name" "$SESSION_ID" "$t_model" "$t_score" "$t_result" "$t_retry" \
+            >> "${{UNIT_UPPER}}_DIR/.audit-log.jsonl"
+        if [[ "$OBSERVABILITY" == "true" && -f "${OTEL_SCRIPT:-}" ]]; then
+            node "$OTEL_SCRIPT" \
+                --type eval \
+                --pipeline "${OTEL_PIPELINE:-}" --unit "${OTEL_UNIT:-}" \
+                --gate "$TRANSITION" --result "$t_result" \
+                --layer "semantic-evaluation" \
+                --session "$SESSION_ID" --score "$t_score" \
+                --model "$t_model" --retry "$t_retry" \
+                --config "${OTEL_CONFIG:-}" \
+                --data "{\"eval_tier\":\"$tier_name\"}" \
+                2>/dev/null || echo "[WARN] OTel eval emission failed" >&2
+        fi
+        echo "  $tier_name eval: $t_result (score: $t_score, model: $t_model)"
+    }
+
+    # Check if all required tier results exist
+    ALL_TIERS_PASS=true
+    HAS_ANY_RESULT=false
+
+    # Stage tier result
+    if [[ -f "$EVAL_RESULT" ]]; then
+        HAS_ANY_RESULT=true
+        TIER_PASS=$(grep -m1 "^result:" "$EVAL_RESULT" | sed 's/result:[[:space:]]*//' | tr -d '"')
+        if [[ "$TIER_PASS" != "PASS" ]]; then ALL_TIERS_PASS=false; fi
+    fi
+
+    # Pipeline tier result (if in eval_chain)
+    if [[ "$EVAL_CHAIN" == *"pipeline"* && -f "$EVAL_PIPELINE_RESULT" ]]; then
+        HAS_ANY_RESULT=true
+        TIER_PASS=$(grep -m1 "^result:" "$EVAL_PIPELINE_RESULT" | sed 's/result:[[:space:]]*//' | tr -d '"')
+        if [[ "$TIER_PASS" != "PASS" ]]; then ALL_TIERS_PASS=false; fi
+    elif [[ "$EVAL_CHAIN" == *"pipeline"* && ! -f "$EVAL_PIPELINE_RESULT" ]]; then
+        ALL_TIERS_PASS=false
+    fi
+
+    # System tier result (if in eval_chain)
+    if [[ "$EVAL_CHAIN" == *"system"* && -f "$EVAL_SYSTEM_RESULT" ]]; then
+        HAS_ANY_RESULT=true
+        TIER_PASS=$(grep -m1 "^result:" "$EVAL_SYSTEM_RESULT" | sed 's/result:[[:space:]]*//' | tr -d '"')
+        if [[ "$TIER_PASS" != "PASS" ]]; then ALL_TIERS_PASS=false; fi
+    elif [[ "$EVAL_CHAIN" == *"system"* && ! -f "$EVAL_SYSTEM_RESULT" ]]; then
+        ALL_TIERS_PASS=false
+    fi
+
+    if [[ "$HAS_ANY_RESULT" == true && "$ALL_TIERS_PASS" == true ]]; then
+        echo ""
+        echo "[PASS] Semantic evaluation passed (all tiers)"
+        # Log each tier that has a result file
+        [[ -f "$EVAL_RESULT" ]] && log_eval_tier "$EVAL_RESULT" "stage"
+        [[ -f "$EVAL_PIPELINE_RESULT" ]] && log_eval_tier "$EVAL_PIPELINE_RESULT" "pipeline"
+        [[ -f "$EVAL_SYSTEM_RESULT" ]] && log_eval_tier "$EVAL_SYSTEM_RESULT" "system"
+        # Clean up eval artifacts
+        rm -f "$EVAL_REQUEST" "$EVAL_RESULT" "$EVAL_PIPELINE_RESULT" "$EVAL_SYSTEM_RESULT"
+    elif [[ "$HAS_ANY_RESULT" == true && "$ALL_TIERS_PASS" == false ]]; then
+        echo ""
+        echo "[FAIL] Semantic evaluation failed (one or more tiers)"
+        [[ -f "$EVAL_RESULT" ]] && log_eval_tier "$EVAL_RESULT" "stage"
+        [[ -f "$EVAL_PIPELINE_RESULT" ]] && log_eval_tier "$EVAL_PIPELINE_RESULT" "pipeline"
+        [[ -f "$EVAL_SYSTEM_RESULT" ]] && log_eval_tier "$EVAL_SYSTEM_RESULT" "system"
+        exit 1
+    else
+        # No eval results yet — write eval request and exit 2
+        echo ""
+        echo "--- Structural checks passed. Semantic evaluation required. ---"
+        {
+            echo "# Evaluation Request"
+            echo ""
+            echo "**Gate:** $TRANSITION"
+            echo "**Stage:** $COMPLETED_STAGE"
+            echo "**Stage directory:** ${STAGE_DIR:-unknown}"
+            echo "**Unit directory:** ${{UNIT_UPPER}}_DIR"
+            echo "**Timestamp:** $TIMESTAMP"
+            echo "**Gate type:** $STAGE_GATE_TYPE"
+            echo "**Eval chain:** $EVAL_CHAIN"
+            echo ""
+            echo "Structural gate checks passed. Semantic evaluation needed before status update."
+            echo ""
+            echo "Run: \`/acu-eval ${{UNIT_UPPER}}_DIR $TRANSITION\`"
+        } > "$EVAL_REQUEST"
+        echo "  Eval request written to: $EVAL_REQUEST"
+        echo "  Run /acu-eval to perform semantic evaluation."
+        exit 2
+    fi
+fi
 
 # --- Dry-run: gate passed — report what would change, then exit without modifying files ---
 if [[ "$DRY_RUN" == true ]]; then
@@ -217,6 +362,17 @@ find "${{UNIT_UPPER}}_DIR" -maxdepth 1 -type f \( -name "*.md" -o -name "*.yaml"
         printf "%s\t%s\t%s\n" "$(basename "$f")" "$size" "$sha"
     done > "$CHECKPOINT_DIR/manifest.txt"
 echo "  Checkpoint: .checkpoints/$TIMESTAMP/"
+
+# --- OTel: emit stage transition event ---
+if [[ "$OBSERVABILITY" == "true" && -f "${OTEL_SCRIPT:-}" && -n "$NEXT_STAGE" ]]; then
+    node "$OTEL_SCRIPT" \
+        --type stage \
+        --pipeline "$OTEL_PIPELINE" --unit "$OTEL_UNIT" \
+        --gate "$NEXT_STAGE" --result "entered" \
+        --session "$SESSION_ID" \
+        --config "${OTEL_CONFIG:-}" \
+        2>/dev/null || echo "[WARN] OTel stage emission failed" >&2
+fi
 
 echo ""
 echo "Status updated successfully."

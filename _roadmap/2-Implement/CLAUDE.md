@@ -1,3 +1,36 @@
+---
+stage: "Implement"
+role: "worker"
+version: "1.0"
+inputs:
+  - name: "plan.md"
+    required: true
+  - name: "status.yaml"
+    required: true
+outputs:
+  - name: "implement.md"
+    required: true
+tools_allowed: []
+gate_criteria:
+  - "every item is done or deferred with reason"
+  - "no items remain in_progress without explanation"
+  - "implement.md has entry for every completed item"
+  - "no items implemented outside plan scope"
+  - "deferred items do not block dependent items"
+entry_criteria:
+  - "plan.md exists"
+  - "plan.md contains every item from source handoff"
+  - "every item has a verifiable completion criterion"
+  - "dependencies are explicit with no circular references"
+constraints:
+  - "Always update status.yaml before and after working on an item"
+  - "Do not modify the plan during implementation"
+parallel_eligible: false
+eval_criteria: []
+max_retries: 1
+gate_type: "inherit"
+eval_model: "inherit"
+---
 # Implement Stage — Roadmap
 
 ## Task

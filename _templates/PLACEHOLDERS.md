@@ -104,6 +104,147 @@ The `{{APPROACHES_TABLE}}` replaces the former "Available Playbooks" section. Fi
 - **If a stage has no meaningful approaches**: Write a single row: `| Standard process | Follow the methodology steps above | — |`
 - **Never** fill with generic tool names like "Markdown editor" — either name a real tool with a real purpose or use "Manual".
 
+## Frontmatter Placeholders
+
+YAML frontmatter blocks (between `---` delimiters) are prepended to both pipeline and stage CLAUDE.md files. These provide a machine-readable contract that Sauron and `/acu-check` can validate and query programmatically.
+
+**Key principles:**
+- **Prose is authoritative** for LLM behavior. Frontmatter is the machine-readable projection.
+- The generator populates both frontmatter and prose from the same domain inputs simultaneously.
+- The `version` field in frontmatter is the **frontmatter schema version** (e.g., `"1.0"`), not the template version tracked in `.acu-meta.yaml`.
+- `gate_criteria` use terse, parseable format: `"{artifact} {condition}"`. Example: `"draft.md word count >= 600"`, not `"The draft document contains at least 600 words."`.
+
+### Pipeline CLAUDE.md Frontmatter Placeholders
+
+| Placeholder | Source | Format | Example |
+|-------------|--------|--------|---------|
+| `{{ARCHETYPE_NAME}}` | Step 2.5 classification result | String: archetype key or `"custom"` | `"document"`, `"build"`, `"custom"` |
+| `{{FRONTMATTER_STAGES}}` | Stage list from domain inputs | YAML list, 2-space indent, `- "name"` per line | `  - "research"\n  - "draft"` |
+| `{{FRONTMATTER_STANDARDS}}` | Standards from domain inputs | Same YAML list format; empty list item `  - []` if none | `  - "PTES"\n  - "NIST SP 800-115"` |
+| `{{HAS_TOOLING}}` | Phase 4 conditional check | Bare YAML boolean (unquoted) | `true` or `false` |
+
+| `{{PIPELINE_GATE_TYPE}}` | User choice during generation | Quoted string: `"structural"`, `"semantic"`, or `"composite"` | `"structural"` |
+| `{{PIPELINE_EVAL_MODEL}}` | Default eval model for all stages | Quoted string: `"opus"`, `"sonnet"`, `"haiku"` | `"sonnet"` |
+
+**Static fields (no placeholders — hardcoded defaults):**
+- `version: "1.0"` — Frontmatter schema version
+- `parallel_eligible` — Activated in 2026.04.15.4. Set by `/acu-new` Input 10. Pipeline-level: `true` if any stage uses parallel execution.
+- `observability: false` — Reserved for Improvement 3 (OTel traces)
+
+**Model inheritance chain:** stage `eval_model` → pipeline `eval_model` → current session model. Each evaluation tier (stage, pipeline, Sauron) can use a different model, enabling A/B testing across the full hierarchy.
+
+| `{{PIPELINE_EVAL_CRITERIA}}` | Pipeline-level evaluation criteria (faculty head) | YAML list of strings, 2-space indent. Empty `  []` if eval_chain is stage-only | `  - "stages form a coherent whole"` |
+| `{{EVAL_CHAIN}}` | Which evaluation tiers run automatically | YAML list | `["stage"]` or `["stage", "pipeline"]` or `["stage", "pipeline", "system"]` |
+| `{{OBSERVABILITY}}` | User choice during generation (Input 9) | Bare YAML boolean | `false` |
+
+Other pipeline frontmatter fields (`pipeline`, `domain`, `unit_name`, `boundary_type`) reuse existing placeholders documented above.
+
+### Observability Configuration
+
+When `observability: true`, `/acu-new` generates `observability.env` from `_templates/observability.env.template` in the pipeline root. This file contains Langfuse connection settings (host, public key, secret key) and is added to `.gitignore` (contains secrets). The `emit-trace.mjs` utility at the framework root reads this config when emitting OTel-compatible traces.
+
+### Stage CLAUDE.md Frontmatter Placeholders
+
+| Placeholder | Source | Format | Example |
+|-------------|--------|--------|---------|
+| `{{STAGE_ROLE}}` | Generator inference from stage position and archetype | String: `worker`, `orchestrator`, or `specialist` | `"worker"` |
+| `{{FRONTMATTER_INPUTS}}` | Prior stage outputs → this stage's inputs. First stage: `intake.yaml` | YAML list of `{name, required}` objects, 2-space indent | `  - name: "intake.yaml"\n    required: true` |
+| `{{FRONTMATTER_OUTPUTS}}` | Stage deliverable convention (`{stage_lower}.md`) | Same format | `  - name: "draft.md"\n    required: true` |
+| `{{FRONTMATTER_TOOLS}}` | Tools list (Input 4) filtered to this stage | YAML list of strings, or `[]` for methodology-only | `["nmap", "nikto"]` or `[]` |
+| `{{FRONTMATTER_GATE_CRITERIA}}` | Terse form of `{{EXIT_GATE_CRITERIA}}` | YAML list of strings, 2-space indent | `  - "draft.md exists"\n  - "draft.md word count >= 600"` |
+| `{{FRONTMATTER_ENTRY_CRITERIA}}` | Prior stage's `gate_criteria` (empty for first stage) | Same format | `  - "research.md exists"` |
+| `{{FRONTMATTER_CONSTRAINTS}}` | List form of `{{STAGE_CONSTRAINTS}}` | YAML list of strings, 2-space indent | `  - "Never fabricate quotes"` |
+
+**Role assignment guidance:**
+- `worker` — Default for most stages. Does the work within its scope.
+- `specialist` — Stages requiring domain expertise (e.g., exploitation in pentest, testing in build). Use when the stage's methodology is distinct from general-purpose work.
+- `orchestrator` — Rarely used at the stage level. Reserved for coordination-heavy stages that primarily delegate rather than execute.
+
+| `{{FRONTMATTER_EVAL_CRITERIA}}` | Domain quality requirements for this stage | YAML list of strings, 2-space indent. Empty `  []` if gate_type is structural | `  - "rating contains justified score with reasoning"` |
+| `{{MAX_RETRIES}}` | Default 1; user can override during generation | Bare integer | `1` |
+| `{{STAGE_GATE_TYPE}}` | Inherited from pipeline or overridden per stage | Quoted string: `"structural"`, `"semantic"`, `"composite"`, or `"inherit"` | `"inherit"` |
+| `{{EVAL_MODEL}}` | Model for semantic evaluation at this stage | Quoted string: `"opus"`, `"sonnet"`, `"haiku"`, or `"inherit"` | `"inherit"` |
+
+| `{{PARALLEL_ELIGIBLE}}` | User choice during generation (Input 10) | Bare YAML boolean | `false` |
+| `{{FAN_OUT_BLOCK}}` | Conditional YAML block; empty when not parallel | Full `fan_out:` block or empty string | See below |
+
+**Static fields (no placeholders — hardcoded defaults):**
+- `version: "1.0"` — Frontmatter schema version
+
+**Eval criteria vs gate criteria:**
+- `gate_criteria` — Structural checks verifiable by bash: file existence, word counts, section headers, schema validation.
+- `eval_criteria` — Semantic quality checks requiring LLM judgment: "analysis references specific scenes", "rating contains justified reasoning". Only evaluated when `gate_type` is `semantic` or `composite`.
+
+The `stage` field reuses `{{STAGE_NAME}}` from the existing stage placeholders.
+
+### Eval-Gate Prompt Template Placeholders
+
+The `eval-gate.md.template` generates per-stage evaluation prompts placed in stage directories. Only generated when `gate_type` is `semantic` or `composite`.
+
+| Placeholder | Source | Format |
+|-------------|--------|--------|
+| `{{EVAL_DELIVERABLES}}` | Stage `outputs` field | Bulleted markdown list of filenames to evaluate |
+| `{{EVAL_CRITERIA_PROSE}}` | Stage `eval_criteria` field | Numbered list of criteria in prose form |
+| `{{PIPELINE_EVAL_NOTE}}` | Reserved for future pipeline-level eval | Static placeholder text: `"Not implemented. Reserved for future pipeline-level evaluation tier."` |
+
+The `eval_tier: "stage"` field in the eval-gate.md frontmatter accommodates future pipeline-level (`"pipeline"`) and Sauron-level (`"system"`) evaluators.
+
+### Fan-Out Block (`{{FAN_OUT_BLOCK}}`)
+
+When `parallel_eligible` is `false`, `{{FAN_OUT_BLOCK}}` expands to an empty string. When `true`, the generator constructs the full `fan_out:` YAML block from user inputs. The block shape varies by strategy:
+
+**Strategy: split_by_subtask** (team cooperation — workers split work, merge combines):
+```yaml
+fan_out:
+  strategy: "split_by_subtask"
+  workers: 3                              # Number of parallel workers
+  subtasks:                               # One per worker (length must match workers)
+    - "Research author background"
+    - "Research historical context"
+    - "Research critical reception"
+  merge: "synthesize"                     # LLM merge agent combines worker outputs
+  worker_model: "sonnet"                  # Single model for all workers
+  worker_personas: []                     # Optional: different thinking angles per worker
+  max_worker_retries: 1                   # Retry failed worker once, then stage fails
+```
+
+**Strategy: competing** (individual competition — same prompt, diverse outputs, select best):
+```yaml
+fan_out:
+  strategy: "competing"
+  workers: 3
+  worker_models: ["opus", "sonnet", "haiku"]   # Different model per worker (length = workers)
+  worker_personas:                              # Different thinking angle per worker (length = workers)
+    - "Approach analytically with data and citations"
+    - "Approach creatively with narrative and metaphor"
+    - "Approach critically — find weaknesses and counterarguments"
+  selection: "eval"                             # Semantic evaluator ranks and selects best
+  max_worker_retries: 1                         # Retry failed worker; disqualify after second failure
+```
+
+**Strategy: competing_teams** (team competition — teams split internally, compete externally):
+```yaml
+fan_out:
+  strategy: "competing_teams"
+  teams: 2                                # Number of competing teams
+  workers_per_team: 3                     # Workers within each team
+  subtasks:                               # One per worker within each team (length = workers_per_team)
+    - "Research author background"
+    - "Research historical context"
+    - "Research critical reception"
+  merge: "synthesize"                     # Per-team internal merge
+  selection: "eval"                       # Between-team selection
+  team_models: ["sonnet", "opus"]         # One model per team (length = teams)
+  worker_personas: []                     # Optional: per-worker personas within teams
+  max_worker_retries: 1                   # Retry failed worker; disqualify team after second failure
+```
+
+**Worker output storage convention:**
+- Worker outputs: `{unit-dir}/.parallel/{strategy}/{worker-id}/output.md`
+- Team worker outputs: `{unit-dir}/.parallel/competing_teams/team-{t}/worker-{i}/output.md`
+- Merged output: `{unit-dir}/.parallel/merged-output.md` (or per-team)
+- Selection result: `{unit-dir}/.parallel/selection-result.yaml`
+
 ## Gate Script Placeholders
 
 | Placeholder | Source |
