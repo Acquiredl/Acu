@@ -1,0 +1,38 @@
+# acu-template: registry.yaml — version 2026.04.11.1
+# Tool / Resource Registry for {{PIPELINE_NAME}} Pipeline
+# Defines all tools, their interfaces, execution constraints, and stage mappings.
+# Referenced by playbooks and the runner.
+
+version: "1.0"
+defaults:
+  timeout: {{DEFAULT_TIMEOUT}}
+  {{DEFAULT_EXECUTION_FIELDS}}
+
+tools:
+{{TOOL_ENTRIES}}
+#  - name: example-tool
+#    binary: example
+#    description: "One-line description"
+#    version_check: "example --version"
+#
+#    inputs:
+#      required:
+#        - name: target
+#          type: string             # host | ip | url | filepath | string | integer | boolean
+#          description: "Primary input"
+#      optional: []
+#
+#    output:
+#      format: text                 # xml | json | text | binary
+#      parser: null                 # Path to parser script (e.g., "./parsers/example.sh")
+#      evidence_type: result        # Domain-specific evidence category
+#      artifacts:
+#        - "{unit}/{stage}/example-{target}-{timestamp}.txt"
+#
+#    execution:
+#      timeout: 300
+#      {{EXECUTION_CONSTRAINT_FIELDS}}
+#
+#    metadata:
+#      stages: []                   # Which pipeline stages use this tool
+#      categories: []               # Freeform tags

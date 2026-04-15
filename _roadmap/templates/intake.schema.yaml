@@ -1,0 +1,11 @@
+# Required fields for Roadmap initiative intake documents.
+# Gates validate intake.yaml against these fields before allowing stage transitions.
+
+required:
+  - initiative.id
+  - initiative.name
+  - initiative.description
+  - initiative.created
+  - initiative.engineer
+  - source.type
+  - source.path

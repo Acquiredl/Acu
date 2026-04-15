@@ -1,0 +1,148 @@
+# Domain Archetypes — Acu Pipeline Generation
+#
+# Derived from 12+ pipelines across diverse domains. Each archetype defines
+# a default stage pattern, gate emphasis, constraints, and stage count guidance.
+# The /acu-new generator uses archetypes as starting points — the user sees the
+# match in the proposal phase and can adjust. Not a restriction — a head start.
+#
+# Design principles applied:
+# - 3-4 stages are the sweet spot unless the domain demands real-world validation
+# - 5 stages add overhead for pure knowledge work
+# - Gate complexity should scale with domain
+
+archetypes:
+
+  build:
+    name: "Build"
+    description: "Software or artifact construction — from design through implementation to shipping"
+    stage_pattern:
+      - research
+      - design
+      - build
+      - test
+      - ship
+    stage_count_range: [4, 5]
+    gate_emphasis: "code quality, test coverage, deliverable completeness"
+    default_constraints:
+      - "Never ship without passing all automated tests"
+      - "Always include build artifacts in the final deliverable"
+      - "Do not skip the test stage even for small changes"
+    domain_flags:
+      - has_code: true
+      - needs_testing: true
+    examples:
+      - description: "UI component library"
+        stages: 5
+        pattern: "Research → Design → Build → Test → Ship"
+      - description: "Desktop application"
+        stages: 4
+        pattern: "Design → Build → Test → Ship"
+    notes: "Research stage is optional — drop it for projects with a clear spec. 4 stages (Design → Build → Test → Ship) is the lean variant."
+
+  document:
+    name: "Document"
+    description: "Content creation — from research through structured writing to publication"
+    stage_pattern:
+      - research
+      - outline
+      - draft
+      - review
+      - publish
+    stage_count_range: [3, 5]
+    gate_emphasis: "accuracy, citation quality, completeness, audience fit"
+    default_constraints:
+      - "Never publish without at least one review pass"
+      - "Always cite sources for factual claims"
+      - "Do not skip the outline stage for documents longer than 500 words"
+    domain_flags:
+      - citation_required: true
+      - audience_aware: true
+    examples:
+      - description: "Technical documentation"
+        stages: 5
+        pattern: "Research → Outline → Draft → Review → Publish"
+      - description: "Content review"
+        stages: 4
+        pattern: "Outline → Draft → Review → Publish"
+      - description: "Minimal document pipeline"
+        stages: 3
+        pattern: "Draft → Review → Publish"
+    notes: "3 stages (Draft → Review → Publish) is the minimum viable document pipeline. Research stage adds value for accuracy-critical domains."
+
+  investigate:
+    name: "Investigate"
+    description: "Assessment and analysis — scoping a problem, gathering evidence, reporting findings"
+    stage_pattern:
+      - scope
+      - scan
+      - assess
+      - report
+    stage_count_range: [3, 4]
+    gate_emphasis: "evidence quality, scope compliance, finding severity classification"
+    default_constraints:
+      - "Never assess outside the defined scope"
+      - "Always classify findings by severity"
+      - "Do not report findings without supporting evidence"
+    domain_flags:
+      - scope_bounded: true
+      - evidence_required: true
+    examples:
+      - description: "Security audit"
+        stages: 4
+        pattern: "Scope → Scan → Assess → Report"
+      - description: "Bug triage"
+        stages: 3
+        pattern: "Investigate → Diagnose → Fix"
+      - description: "Penetration test"
+        stages: 5
+        pattern: "Scoping → Recon → Assessment → Exploitation → Reporting"
+    notes: "Bug triage is a lean variant that skips scoping (scope = single bug). A 5-stage pattern is justified when exploitation is a real step, not just analysis."
+
+  trade:
+    name: "Trade"
+    description: "Progressive risk validation — build a strategy, then validate through increasing exposure"
+    stage_pattern:
+      - build
+      - backtest
+      - paper
+      - live
+    stage_count_range: [3, 4]
+    gate_emphasis: "risk metrics, backtesting validity, position sizing, regulatory compliance"
+    default_constraints:
+      - "Never go live without passing paper trading validation"
+      - "Always define maximum loss thresholds before backtesting"
+      - "Do not skip backtesting even for well-known strategies"
+    domain_flags:
+      - risk_managed: true
+      - progressive_validation: true
+    examples:
+      - description: "Options wheel strategy"
+        stages: 4
+        pattern: "Build → Backtest → Paper → Live"
+    notes: "Stage names may vary (simulate/demo/production) but the pattern is always: build, validate with fake data, validate with real-but-safe execution, then deploy for real."
+
+  design:
+    name: "Design"
+    description: "Creative iteration — from concept through prototyping to refinement"
+    stage_pattern:
+      - concept
+      - prototype
+      - playtest
+      - iterate
+    stage_count_range: [3, 4]
+    gate_emphasis: "feasibility, user experience, design coherence, iteration evidence"
+    default_constraints:
+      - "Never finalize a design without at least one prototype-test cycle"
+      - "Always document what changed between iterations and why"
+      - "Do not skip playtesting even for simple designs"
+    domain_flags:
+      - iterative: true
+      - user_facing: true
+    examples:
+      - description: "Game design"
+        stages: 4
+        pattern: "Concept → Prototype → Playtest → Iterate"
+      - description: "Recipe development"
+        stages: 5
+        pattern: "Concept → Development → Testing → Polish → Publish"
+    notes: "A 5-stage variant adds Polish and Publish — justified when the final output needs audience-ready quality. For pure design exploration, 4 stages suffice."

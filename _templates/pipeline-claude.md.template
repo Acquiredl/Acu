@@ -1,0 +1,38 @@
+<!-- acu-template: pipeline-claude.md — version 2026.04.11.1 -->
+# {{PIPELINE_NAME}} Pipeline
+
+{{PIPELINE_DESCRIPTION}}
+
+## Identity
+
+{{IDENTITY}}
+
+## Task
+
+Route work to the correct stage, enforce {{BOUNDARY_TYPE}} boundaries, and ensure quality gates pass before stage transitions.
+
+## Context
+
+- **Pipeline:** {{STAGES_ARROW}}
+- **Standards:** {{STANDARDS_LIST}}
+{{BOUNDARY_CONTEXT}}
+
+## Pipeline Stages
+
+| Stage | Purpose | Entry Gate | Key Output |
+|-------|---------|------------|------------|
+{{STAGES_TABLE}}
+
+## Routing Table
+
+| Intent | Go To | Read |
+|--------|-------|------|
+{{ROUTING_TABLE}}
+
+## {{UNIT_NAME}} Lifecycle
+
+{{LIFECYCLE_STEPS}}
+
+## Constraints
+
+{{CONSTRAINTS}}

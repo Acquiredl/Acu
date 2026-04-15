@@ -1,0 +1,52 @@
+# [Workspace Name] — Acu Project
+
+[One sentence: what this workspace exists to do.]
+
+## Identity
+
+[Who is Claude in this workspace? Define the role, tone, and perspective. This shapes every response.]
+
+## Task
+
+[What is the primary action this workspace performs? Use precise verbs. This is the default mission — what Claude should do when someone walks in without a specific request.]
+
+## Context
+
+[What does Claude need to know to work effectively here? Background knowledge, domain assumptions, related workspaces, or source material that applies to everything in this workspace.]
+
+## Folder Structure
+
+- `/drafts` — Active work-in-progress.
+- `/references` — Domain knowledge and source material.
+- `/sessions` — Timestamped session logs for continuity.
+- `/final` — Polished output ready for handoff.
+- `/archive` — Retired or superseded work.
+- `REFLECTIONS.md` — Lessons learned and mistakes to avoid repeating.
+
+## Routing Table
+
+| Task | Go To | Read |
+|------|-------|------|
+| Start new work | `/sessions` | `drafts/CONTEXT.md` then create a session file |
+| Continue existing work | `/sessions` | Most recent session file, then `REFLECTIONS.md` |
+| Look up domain knowledge | `/references` | Relevant reference file |
+| Finalize output | `/final` | `drafts/CONTEXT.md` for the handoff process |
+| Review past decisions | `/archive` | `REFLECTIONS.md` |
+
+## Constraints
+
+[What to avoid. Boundaries, limitations, negative constraints. Things that should never appear in output from this workspace.]
+
+## Output Format
+
+[What deliverables from this workspace look like. File types, structure, length, naming conventions. This tells Claude what "done" looks like.]
+
+### Naming Conventions
+
+- Session files: `YYYYMMDD-HHmm_ProjectName_Status.md`
+- Status values: `exploring`, `refining`, `blocked`, `complete`
+- Handoff files in `/final`: `ProjectName_Handoff.md`
+
+## Maintenance
+
+CONTEXT.md files and this CLAUDE.md are reviewed automatically. A scheduled task runs twice weekly, reads new session files across all workspaces, and logs suggested updates to `REVIEW-LOG.md`. No manual upkeep required — just review the suggestions when notified.

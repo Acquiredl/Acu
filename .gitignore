@@ -1,0 +1,13 @@
+# Claude local settings (machine-specific, not for version control)
+.claude/*
+!.claude/skills/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+
+# Dependencies
+node_modules/

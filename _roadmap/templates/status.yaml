@@ -1,0 +1,40 @@
+# Initiative Status
+# Tracks the current state of an initiative.
+# Located at initiatives/{name}/status.yaml
+
+initiative:
+  id: ""
+  name: ""
+  status: "active"                # active | paused | complete | archived
+  current_stage: "plan"           # plan | implement | validate
+  current_phase: ""               # Current implementation phase (e.g., "data-foundation")
+  created: ""                     # ISO 8601
+  updated: ""                     # ISO 8601 — update on every stage/item transition
+
+stages:
+  plan:
+    status: "pending"
+    entered: ""
+    completed: ""
+  implement:
+    status: "pending"
+    entered: ""
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+# Items track per-work-item progress within the initiative.
+# Each item has:
+#   name:         Short description
+#   pillar:       Which theme this belongs to
+#   phase:        Implementation phase number (1, 2, 3, ...)
+#   status:       planned | in_progress | done | deferred
+#   started:      ISO 8601 — when work began
+#   completed:    ISO 8601 — when work finished
+#   evidence:     File path, commit SHA, or test result proving completion
+#   deferred_reason: Why this item was deferred (required if status is deferred)
+items: {}
+
+notes: ""

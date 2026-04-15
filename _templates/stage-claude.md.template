@@ -1,0 +1,49 @@
+<!-- acu-template: stage-claude.md — version 2026.04.14.2 -->
+# {{STAGE_NAME}} Stage
+
+{{STAGE_DESCRIPTION}}
+
+## Objective
+
+{{STAGE_OBJECTIVE}}
+
+## Methodology ({{METHODOLOGY_REF}})
+
+{{METHODOLOGY_STEPS}}
+
+## Approaches
+
+| Approach | Purpose | Resources |
+|----------|---------|-----------|
+{{APPROACHES_TABLE}}
+
+## Entry Gate (from {{PREV_STAGE}})
+
+{{ENTRY_GATE_CRITERIA}}
+
+## Exit Gate (to {{NEXT_STAGE}})
+
+<!-- Convention: every criterion must be a testable statement.
+     Format: "The {deliverable} contains {requirement}." or "The {artifact} passes {check}."
+     Bad:  "Research is thorough."
+     Good: "The research document contains at least 3 cited sources per claim." -->
+{{EXIT_GATE_CRITERIA}}
+
+## Constraints
+
+<!-- Convention: every constraint starts with a verb (Never, Always, Only, Do not).
+     Bad:  "Security is important."
+     Good: "Never store credentials in plaintext." -->
+{{STAGE_CONSTRAINTS}}
+
+## On Gate Failure
+
+If a gate transition from this stage fails, a `.gate-feedback.md` file will be written in the work unit directory containing the specific failure reasons.
+
+To resolve:
+1. Read `.gate-feedback.md` in the work unit directory for the specific failures
+2. Address each `[FAIL]` item — these are the blocking issues
+3. Review any `[WARN]` items — these are advisory but may indicate quality gaps
+4. Re-run the gate after fixes: `bash gates/advance.sh <unit-dir> <transition>`
+
+The feedback file is deleted automatically on the next successful gate pass.

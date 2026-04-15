@@ -1,0 +1,23 @@
+# Initiative Intake Document
+# Copy this template to initiatives/{name}/intake.yaml and fill in the values.
+
+initiative:
+  id: ""                          # Unique ID (e.g., "strength-indexing")
+  name: ""                        # Display name
+  description: ""                 # One-line summary of what this initiative delivers
+  created: ""                     # ISO 8601 timestamp
+  engineer: ""                    # Who is leading this
+
+source:
+  type: ""                        # brainstorming-handoff | sauron-proposal | manual
+  path: ""                        # Path to source document (e.g., Brainstorming/final/X_Handoff.md)
+  date: ""                        # When the source was produced
+
+scope:
+  pillars: 0                      # Number of major themes/pillars
+  items: 0                        # Total discrete work items
+  phases: 0                       # Number of implementation phases
+  affects: []                     # Which subsystems are modified (e.g., [templates, cores, sauron, skills])
+
+rules:
+  scope: "framework changes only — no pipeline-specific work"

@@ -1,0 +1,19 @@
+# acu-template: intake.yaml — version 2026.04.11.1
+# {{UNIT_NAME}} Intake Document
+# Copy this template to {{UNITS_DIR}}/{id}-{name}/intake.yaml and fill in the values.
+
+{{UNIT_LOWER}}:
+  id: ""                          # Unique ID (e.g., "001")
+  name: ""                        # Short name
+  description: ""                 # What is being {{VERB_PAST_PARTICIPLE}}
+  created: ""                     # ISO 8601 timestamp
+  {{OPERATOR_FIELD}}: ""          # Who is conducting this
+
+{{DOMAIN_INTAKE_FIELDS}}
+
+rules:
+  {{RULE_FIELDS}}
+
+{{THRESHOLD_FIELDS}}
+
+{{REPORTING_BLOCK}}

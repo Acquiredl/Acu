@@ -1,0 +1,80 @@
+# Template test case: Build archetype
+# Verifies that a build-type pipeline generates correct structure.
+
+name: "Build archetype test"
+archetype: build
+domain:
+  name: "TestBuild"
+  description: "Test pipeline for build archetype validation"
+  stages:
+    - Design
+    - Build
+    - Test
+    - Ship
+  unit_name: component
+  unit_lower: component
+  unit_upper: COMPONENT
+  units_dir: components
+  operator: engineer
+  has_tooling: false
+
+expected_structure:
+  directories:
+    - "1-Design"
+    - "2-Build"
+    - "3-Test"
+    - "4-Ship"
+    - "gates"
+    - "templates"
+    - "components/001-sample"
+
+  files:
+    - "CLAUDE.md"
+    - "1-Design/CLAUDE.md"
+    - "2-Build/CLAUDE.md"
+    - "3-Test/CLAUDE.md"
+    - "4-Ship/CLAUDE.md"
+    - "gates/advance.sh"
+    - "gates/gate-design-to-build.sh"
+    - "gates/gate-build-to-test.sh"
+    - "gates/gate-test-to-ship.sh"
+    - "gates/gate-ship-complete.sh"
+    - "templates/intake.yaml"
+    - "templates/status.yaml"
+    - "templates/intake.schema.yaml"
+    - "templates/status.schema.yaml"
+    - "templates/report.md"
+    - "components/001-sample/intake.yaml"
+    - "components/001-sample/status.yaml"
+    - ".acu-meta.yaml"
+
+  file_checks:
+    - file: "CLAUDE.md"
+      must_contain:
+        - "Design -> Build -> Test -> Ship"
+        - "## Routing Table"
+        - "## Constraints"
+      must_not_contain:
+        - "{{"
+
+    - file: "gates/advance.sh"
+      must_contain:
+        - "design-to-build"
+        - "build-to-test"
+        - "test-to-ship"
+        - "ship-complete"
+        - "set -euo pipefail"
+      must_not_contain:
+        - "{{"
+
+    - file: ".acu-meta.yaml"
+      must_contain:
+        - "pipeline_name: TestBuild"
+        - "unit_name: component"
+        - "template_version:"
+
+    - file: "3-Test/CLAUDE.md"
+      must_contain:
+        - "## Exit Gate"
+        - "## Constraints"
+        - "## On Gate Failure"

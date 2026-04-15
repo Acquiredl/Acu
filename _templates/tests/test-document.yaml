@@ -1,0 +1,70 @@
+# Template test case: Document archetype
+# Verifies that a document-type pipeline generates correct structure.
+
+name: "Document archetype test"
+archetype: document
+domain:
+  name: "TestDocs"
+  description: "Test pipeline for document archetype validation"
+  stages:
+    - Research
+    - Draft
+    - Review
+    - Publish
+  unit_name: guide
+  unit_lower: guide
+  unit_upper: GUIDE
+  units_dir: guides
+  operator: author
+  has_tooling: false
+
+expected_structure:
+  directories:
+    - "1-Research"
+    - "2-Draft"
+    - "3-Review"
+    - "4-Publish"
+    - "gates"
+    - "templates"
+    - "guides/001-sample"
+
+  files:
+    - "CLAUDE.md"
+    - "1-Research/CLAUDE.md"
+    - "2-Draft/CLAUDE.md"
+    - "3-Review/CLAUDE.md"
+    - "4-Publish/CLAUDE.md"
+    - "gates/advance.sh"
+    - "gates/gate-research-to-draft.sh"
+    - "gates/gate-draft-to-review.sh"
+    - "gates/gate-review-to-publish.sh"
+    - "gates/gate-publish-complete.sh"
+    - "templates/intake.yaml"
+    - "templates/status.yaml"
+    - "templates/intake.schema.yaml"
+    - "templates/status.schema.yaml"
+    - ".acu-meta.yaml"
+
+  file_checks:
+    - file: "CLAUDE.md"
+      must_contain:
+        - "Research -> Draft -> Review -> Publish"
+        - "## Routing Table"
+      must_not_contain:
+        - "{{"
+
+    - file: "1-Research/CLAUDE.md"
+      must_contain:
+        - "## Exit Gate"
+        - "## On Gate Failure"
+      must_not_contain:
+        - "{{"
+
+    - file: "gates/gate-research-to-draft.sh"
+      must_contain:
+        - "set -euo pipefail"
+        - "[PASS]"
+        - "[FAIL]"
+        - "audit-log"
+      must_not_contain:
+        - "{{"

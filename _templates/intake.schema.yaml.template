@@ -1,0 +1,8 @@
+# acu-template: intake.schema.yaml — version 2026.04.11.2
+# Required fields for {{PIPELINE_NAME}} intake documents.
+# Gates validate intake.yaml against these fields before allowing stage transitions.
+# Add or remove fields to match your domain's intake.yaml structure.
+# Nested fields use dot notation: e.g., "reporting.format"
+
+required:
+{{INTAKE_REQUIRED_FIELDS}}

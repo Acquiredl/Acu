@@ -1,0 +1,7 @@
+# acu-template: status.schema.yaml — version 2026.04.11.2
+# Required fields for {{PIPELINE_NAME}} status documents.
+# Gates validate status.yaml against these fields before allowing stage transitions.
+# The unit ID field name varies by domain (e.g., post_id, engagement_id, recipe_id).
+
+required:
+{{STATUS_REQUIRED_FIELDS}}

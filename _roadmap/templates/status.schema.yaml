@@ -1,0 +1,9 @@
+# Required fields for Roadmap initiative status documents.
+# Gates validate status.yaml against these fields before allowing stage transitions.
+
+required:
+  - initiative.id
+  - initiative.name
+  - initiative.status
+  - initiative.current_stage
+  - initiative.updated

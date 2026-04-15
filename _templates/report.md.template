@@ -1,0 +1,58 @@
+<!-- acu-template: report.md — version 2026.04.11.1 -->
+# {{PIPELINE_NAME}} Report
+
+## {{UNIT_NAME}} Summary
+
+| Field | Value |
+|-------|-------|
+| {{UNIT_NAME}} ID | {id} |
+| {{UNIT_NAME}} Name | {name} |
+| {{OPERATOR_LABEL}} | {operator} |
+| Date Range | {start_date} — {end_date} |
+| Classification | {classification} |
+
+## Executive Summary
+
+{executive_summary}
+
+## Scope
+
+{scope_description}
+
+## Methodology
+
+{{METHODOLOGY_SUMMARY}}
+
+### Stages Completed
+
+{{STAGES_CHECKLIST}}
+
+## Findings / Results
+
+{{RESULTS_TABLE}}
+
+## Detailed Results
+
+{{DETAILED_RESULTS_TEMPLATE}}
+
+---
+
+## Tools / Resources Used
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| {tool_name} | {version} | {purpose} |
+
+## Appendix
+
+### A. Artifacts
+
+{list of artifact files with paths}
+
+### B. Intake Document
+
+{reference to intake.yaml}
+
+### C. Stage Handoffs
+
+{list of stage handoff files}

@@ -1,0 +1,17 @@
+# acu-template: status.yaml — version 2026.04.11.1
+# {{UNIT_NAME}} Status
+# Tracks the current state of a {{UNIT_LOWER}}.
+# Located at {{UNITS_DIR}}/{id}-{name}/status.yaml
+
+{{UNIT_LOWER}}:
+  id: ""
+  name: ""
+  status: "active"                # active | paused | complete | archived
+  current_stage: "{{FIRST_STAGE_LOWER}}"
+  created: ""                     # ISO 8601
+  updated: ""                     # ISO 8601 — update on every stage transition
+
+stages:
+{{STATUS_STAGES}}
+
+notes: ""

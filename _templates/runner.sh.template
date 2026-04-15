@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# acu-template: runner.sh — version 2026.04.11.1
+# runner.sh — Playbook execution engine for the {{PIPELINE_NAME}} Pipeline
+# Reads YAML playbooks, resolves tools from registry.yaml, enforces boundaries,
+# and executes steps inside the {{UNIT_LOWER}}'s context.
+#
+# Usage: runner.sh <playbook.yaml> <{{UNIT_LOWER}}-dir>
+# Requires: yq, bash 4+
+
+set -euo pipefail
+
+# --- Configuration ---
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REGISTRY="${SCRIPT_DIR}/tools/registry.yaml"
+{{BOUNDARY_SCRIPT_VARS}}
+
+PLAYBOOK="${1:?Usage: runner.sh <playbook.yaml> <{{UNIT_LOWER}}-dir>}"
+{{UNIT_UPPER}}_DIR="${2:?Usage: runner.sh <playbook.yaml> <{{UNIT_LOWER}}-dir>}"
+
+# --- Validation ---
+
+if [[ ! -f "$PLAYBOOK" ]]; then
+    echo "RUNNER ERROR: Playbook not found: $PLAYBOOK" >&2
+    exit 1
+fi
+
+if [[ ! -d "${{UNIT_UPPER}}_DIR" ]]; then
+    echo "RUNNER ERROR: {{UNIT_NAME}} directory not found: ${{UNIT_UPPER}}_DIR" >&2
+    exit 1
+fi
+
+if [[ ! -f "$REGISTRY" ]]; then
+    echo "RUNNER ERROR: Tool registry not found: $REGISTRY" >&2
+    exit 1
+fi
+
+if ! command -v yq &>/dev/null; then
+    echo "RUNNER ERROR: yq is required but not installed" >&2
+    exit 1
+fi
+
+INTAKE_FILE="${{{UNIT_UPPER}}_DIR}/intake.yaml"
+if [[ ! -f "$INTAKE_FILE" ]]; then
+    echo "RUNNER ERROR: No intake.yaml in {{UNIT_LOWER}} directory" >&2
+    exit 1
+fi
+
+TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+
+# --- Logging ---
+
+LOG_DIR="${{{UNIT_UPPER}}_DIR}/logs"
+mkdir -p "$LOG_DIR"
+RUN_LOG="${LOG_DIR}/run-${TIMESTAMP}.log"
+
+log() {
+    local level="$1"; shift
+    local msg="[$(date -u +%H:%M:%S)] [$level] $*"
+    echo "$msg" | tee -a "$RUN_LOG"
+}
+
+# --- Registry Lookups ---
+
+get_tool_field() {
+    local tool_name="$1"
+    local field="$2"
+    yq -r ".tools[] | select(.name == \"$tool_name\") | $field" "$REGISTRY"
+}
+
+check_tool_installed() {
+    local tool_name="$1"
+    local version_cmd
+    version_cmd=$(get_tool_field "$tool_name" ".version_check")
+    if [[ "$version_cmd" == "null" ]] || [[ -z "$version_cmd" ]]; then
+        log "WARN" "No version check for tool: $tool_name"
+        return 0
+    fi
+    if eval "$version_cmd" &>/dev/null; then
+        return 0
+    else
+        log "ERROR" "Tool not installed: $tool_name (check: $version_cmd)"
+        return 1
+    fi
+}
+
+get_tool_timeout() {
+    local tool_name="$1"
+    local val
+    val=$(get_tool_field "$tool_name" ".execution.timeout")
+    if [[ "$val" == "null" ]] || [[ -z "$val" ]]; then
+        val=$(yq -r '.defaults.timeout' "$REGISTRY")
+    fi
+    echo "$val"
+}
+
+{{BOUNDARY_FUNCTIONS}}
+
+# --- Step Execution ---
+
+execute_tool_step() {
+    local step_index="$1"
+    local tool_name target
+
+    tool_name=$(yq -r ".steps[$step_index].tool" "$PLAYBOOK")
+    target=$(yq -r ".steps[$step_index].target // \"\"" "$PLAYBOOK")
+
+    if [[ -z "$tool_name" ]] || [[ "$tool_name" == "null" ]]; then
+        log "ERROR" "Step $step_index: no tool specified"
+        return 1
+    fi
+
+    log "INFO" "Step $step_index: tool=$tool_name target=$target"
+
+    if ! check_tool_installed "$tool_name"; then
+        return 1
+    fi
+
+    # Build command from step args
+    local binary
+    binary=$(get_tool_field "$tool_name" ".binary")
+    local cmd_args=("$binary")
+
+    local arg_count
+    arg_count=$(yq -r ".steps[$step_index].args | length" "$PLAYBOOK" 2>/dev/null || echo "0")
+    for ((i = 0; i < arg_count; i++)); do
+        local arg
+        arg=$(yq -r ".steps[$step_index].args[$i]" "$PLAYBOOK")
+        arg="${arg//\{target\}/$target}"
+        arg="${arg//\{unit\}/${{UNIT_UPPER}}_DIR}"
+        arg="${arg//\{timestamp\}/$TIMESTAMP}"
+        cmd_args+=("$arg")
+    done
+
+    local timeout
+    timeout=$(get_tool_timeout "$tool_name")
+
+    log "EXEC" "${cmd_args[*]}"
+
+    local stage
+    stage=$(yq -r ".stage // \"output\"" "$PLAYBOOK")
+    mkdir -p "${{UNIT_UPPER}}_DIR/$stage"
+
+    local exit_code=0
+    timeout "$timeout" "${cmd_args[@]}" 2>&1 | tee -a "$RUN_LOG" || exit_code=$?
+
+    if [[ $exit_code -ne 0 ]]; then
+        log "ERROR" "Tool '$tool_name' exited with code $exit_code"
+        return $exit_code
+    fi
+
+    log "OK" "Step $step_index complete: $tool_name"
+}
+
+execute_shell_step() {
+    local step_index="$1"
+    local shell_cmd
+
+    shell_cmd=$(yq -r ".steps[$step_index].shell" "$PLAYBOOK")
+    if [[ -z "$shell_cmd" ]] || [[ "$shell_cmd" == "null" ]]; then
+        log "ERROR" "Step $step_index: no shell command"
+        return 1
+    fi
+
+    shell_cmd="${shell_cmd//\{unit\}/${{UNIT_UPPER}}_DIR}"
+    shell_cmd="${shell_cmd//\{timestamp\}/$TIMESTAMP}"
+
+    log "SHELL" "$shell_cmd"
+    eval "$shell_cmd" 2>&1 | tee -a "$RUN_LOG" || {
+        log "ERROR" "Shell step $step_index failed"
+        return 1
+    }
+    log "OK" "Shell step $step_index complete"
+}
+
+# --- Prerequisite Check ---
+
+check_prerequisites() {
+    log "INFO" "Checking playbook prerequisites"
+
+    local req_count
+    req_count=$(yq -r '.requires.tools | length' "$PLAYBOOK" 2>/dev/null || echo "0")
+
+    for ((i = 0; i < req_count; i++)); do
+        local req_tool
+        req_tool=$(yq -r ".requires.tools[$i]" "$PLAYBOOK")
+        if ! check_tool_installed "$req_tool"; then
+            log "ERROR" "Missing prerequisite tool: $req_tool"
+            return 1
+        fi
+    done
+
+    log "OK" "All prerequisites met"
+}
+
+# --- Main Execution ---
+
+main() {
+    local playbook_name
+    playbook_name=$(yq -r '.name // "unnamed"' "$PLAYBOOK")
+    local playbook_stage
+    playbook_stage=$(yq -r '.stage // "unknown"' "$PLAYBOOK")
+
+    log "START" "Playbook: $playbook_name (stage: $playbook_stage)"
+    log "INFO" "{{UNIT_NAME}}: ${{UNIT_UPPER}}_DIR"
+    log "INFO" "Log: $RUN_LOG"
+
+    check_prerequisites || exit 1
+
+    local step_count
+    step_count=$(yq -r '.steps | length' "$PLAYBOOK")
+    log "INFO" "Steps to execute: $step_count"
+
+    local failed=0
+    for ((s = 0; s < step_count; s++)); do
+        local step_name
+        step_name=$(yq -r ".steps[$s].name // \"step-$s\"" "$PLAYBOOK")
+        log "STEP" "--- $step_name ($((s + 1))/$step_count) ---"
+
+        local step_type
+        step_type=$(yq -r ".steps[$s] | keys[]" "$PLAYBOOK" | grep -E '^(tool|shell)$' | head -1)
+
+        case "$step_type" in
+            tool)  execute_tool_step "$s" || ((failed++)) ;;
+            shell) execute_shell_step "$s" || ((failed++)) ;;
+            *)     log "WARN" "Step $s: unknown type (no tool or shell key)" ;;
+        esac
+    done
+
+    echo ""
+    if [[ $failed -eq 0 ]]; then
+        log "DONE" "Playbook '$playbook_name' completed successfully ($step_count steps)"
+    else
+        log "DONE" "Playbook '$playbook_name' completed with $failed failures ($step_count steps)"
+    fi
+
+    log "INFO" "Full log: $RUN_LOG"
+    return $failed
+}
+
+main

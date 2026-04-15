@@ -1,0 +1,102 @@
+# ROUTES.yaml — Acu Dispatch Table
+# Read FIRST for routing. Load destination CLAUDE.md only AFTER match.
+# Source of truth for paths, statuses, and keywords. Other files reference, never duplicate.
+
+subsystems:
+  Sauron:
+    path: Sauron
+    role: Scheduler, dispatcher, reviewer
+    keywords: [route, dispatch, review, push, framework, sauron, health, status]
+
+  Roadmap:
+    path: _roadmap
+    role: Framework evolution tracker
+    keywords: [roadmap, initiative, evolution, handoff, framework-work, strength, pillar, phase]
+
+pipelines: {}
+
+workspaces:
+  Brainstorming:
+    path: Brainstorming
+    purpose: Incubate pipeline ideas, framework evolution
+    keywords: [idea, brainstorm, incubate, what-if, propose, devil, challenge]
+
+  Research:
+    path: Research
+    purpose: Cross-pipeline intelligence
+    keywords: [research, investigate, compare, evaluate, cross-pipeline-intel]
+
+  Production:
+    path: Production
+    purpose: Framework-level and cross-pipeline integration only (not for standalone domain projects)
+    keywords: [compose, integrate, combine, deliver, framework-build]
+
+  Learning:
+    path: Learning
+    purpose: Framework meta-learning, pattern library
+    keywords: [learn, pattern, meta, reflect, study]
+
+skills:
+  generate:
+    skill: /acu-new
+    keywords: [new pipeline, create pipeline, scaffold, generate]
+  intake:
+    skill: /acu-start
+    keywords: [new component, new unit, start work, create intake, new engagement, add]
+  update:
+    skill: /acu-update
+    keywords: [update pipeline, patch structure, template sync]
+  check:
+    skill: /acu-check
+    keywords: [check health, scan, compliance, drift]
+  pulse:
+    skill: /acu-pulse
+    keywords: [metrics, autonomy, gate stats, pulse, health metrics, pass rate]
+  observe:
+    skill: /acu-observe
+    keywords: [observe, overview, dashboard, framework status, how is acu doing]
+
+methods:
+  code-review:
+    path: _templates/methods/code-review.md
+    applies_to: [review, test, ship]
+    keywords: [review code, code quality, security review, performance review]
+  debugging:
+    path: _templates/methods/debugging.md
+    applies_to: [investigate, diagnose, fix]
+    keywords: [debug, root cause, reproduce, diagnose, gate failure]
+  test-generation:
+    path: _templates/methods/test-generation.md
+    applies_to: [test, qa, build]
+    keywords: [write tests, generate tests, test coverage, qa, browser test]
+  safe-refactoring:
+    path: _templates/methods/safe-refactoring.md
+    applies_to: [build, refactor]
+    keywords: [refactor, rename, extract, restructure, move files]
+  architecture:
+    path: _templates/methods/architecture.md
+    applies_to: [design, plan]
+    keywords: [architect, design system, plan build, component breakdown]
+  documentation:
+    path: _templates/methods/documentation.md
+    applies_to: [ship, publish]
+    keywords: [document, docstring, readme, api reference]
+  agent-engineering:
+    path: _templates/methods/agent-engineering.md
+    applies_to: [design, plan, review, ship]
+    keywords: [agent, reliability, security, observability, evaluation, technical debt, architecture principles]
+
+review:
+  health:
+    scan: [status.yaml, gates/]
+    across: pipelines/
+  patterns:
+    scan: [REFLECTIONS.md, gate results]
+    across: pipelines/
+  push:
+    modify: _templates/
+    log: REVIEW-LOG.md
+
+onboarding:
+  path: QUICKSTART.md
+  keywords: [new user, getting started, how does this work, first pipeline, onboarding]

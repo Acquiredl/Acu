@@ -1,0 +1,66 @@
+# Template test case: Investigate archetype
+# Verifies that an investigate-type pipeline generates correct structure.
+
+name: "Investigate archetype test"
+archetype: investigate
+domain:
+  name: "TestAudit"
+  description: "Test pipeline for investigate archetype validation"
+  stages:
+    - Scope
+    - Scan
+    - Assess
+    - Report
+  unit_name: finding
+  unit_lower: finding
+  unit_upper: FINDING
+  units_dir: findings
+  operator: analyst
+  has_tooling: false
+
+expected_structure:
+  directories:
+    - "1-Scope"
+    - "2-Scan"
+    - "3-Assess"
+    - "4-Report"
+    - "gates"
+    - "templates"
+    - "findings/001-sample"
+
+  files:
+    - "CLAUDE.md"
+    - "1-Scope/CLAUDE.md"
+    - "2-Scan/CLAUDE.md"
+    - "3-Assess/CLAUDE.md"
+    - "4-Report/CLAUDE.md"
+    - "gates/advance.sh"
+    - "gates/gate-scope-to-scan.sh"
+    - "gates/gate-scan-to-assess.sh"
+    - "gates/gate-assess-to-report.sh"
+    - "gates/gate-report-complete.sh"
+    - "templates/intake.yaml"
+    - "templates/status.yaml"
+    - ".acu-meta.yaml"
+
+  file_checks:
+    - file: "CLAUDE.md"
+      must_contain:
+        - "Scope -> Scan -> Assess -> Report"
+        - "## Constraints"
+      must_not_contain:
+        - "{{"
+
+    - file: "gates/advance.sh"
+      must_contain:
+        - "scope-to-scan"
+        - "scan-to-assess"
+        - "assess-to-report"
+        - "report-complete"
+      must_not_contain:
+        - "{{"
+
+    - file: ".acu-meta.yaml"
+      must_contain:
+        - "pipeline_name: TestAudit"
+        - "unit_name: finding"

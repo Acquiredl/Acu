@@ -1,0 +1,25 @@
+# Generated manually. Framework infrastructure pipeline.
+generated_by: manual
+template_version: "2026.04.14.1"
+generated_at: "2026-04-14T12:00:00Z"
+pipeline_name: Roadmap
+stages:
+  - plan
+  - implement
+  - validate
+unit_name: initiative
+unit_lower: initiative
+unit_upper: INITIATIVE
+units_dir: initiatives
+has_tooling: false
+structural_files:
+  - gates/advance.sh
+  - gates/gate-plan-to-implement.sh
+  - gates/gate-implement-to-validate.sh
+  - gates/gate-validate-complete.sh
+  - templates/intake.yaml
+  - templates/status.yaml
+  - templates/intake.schema.yaml
+  - templates/status.schema.yaml
+known_deviations:
+  - framework-infra  # Lives at _roadmap/ not pipelines/, because it IS framework infrastructure
