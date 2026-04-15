@@ -1,6 +1,6 @@
 # Generated manually. Framework infrastructure pipeline.
 generated_by: manual
-template_version: "2026.04.14.1"
+template_version: "2026.04.15.5"
 generated_at: "2026-04-14T12:00:00Z"
 pipeline_name: Roadmap
 stages:

@@ -54,7 +54,13 @@ skills:
     keywords: [metrics, autonomy, gate stats, pulse, health metrics, pass rate]
   observe:
     skill: /acu-observe
-    keywords: [observe, overview, dashboard, framework status, how is acu doing]
+    keywords: [observe, overview, dashboard, framework status, how is acu doing, traces, langfuse, otel]
+  eval:
+    skill: /acu-eval
+    keywords: [evaluate, eval, semantic gate, quality check, smart gate]
+  parallel:
+    skill: /acu-parallel
+    keywords: [parallel, fan out, workers, split, competing, teams, parallel stage]
 
 methods:
   code-review:

@@ -1,4 +1,26 @@
-<!-- acu-template: stage-claude.md — version 2026.04.14.2 -->
+---
+stage: "{{STAGE_NAME}}"
+role: "{{STAGE_ROLE}}"
+version: "1.0"
+inputs:
+{{FRONTMATTER_INPUTS}}
+outputs:
+{{FRONTMATTER_OUTPUTS}}
+tools_allowed: {{FRONTMATTER_TOOLS}}
+gate_criteria:
+{{FRONTMATTER_GATE_CRITERIA}}
+entry_criteria:
+{{FRONTMATTER_ENTRY_CRITERIA}}
+constraints:
+{{FRONTMATTER_CONSTRAINTS}}
+parallel_eligible: {{PARALLEL_ELIGIBLE}}
+{{FAN_OUT_BLOCK}}eval_criteria:
+{{FRONTMATTER_EVAL_CRITERIA}}
+max_retries: {{MAX_RETRIES}}
+gate_type: "{{STAGE_GATE_TYPE}}"
+eval_model: "{{EVAL_MODEL}}"
+---
+<!-- acu-template: stage-claude.md — version 2026.04.15.4 -->
 # {{STAGE_NAME}} Stage
 
 {{STAGE_DESCRIPTION}}

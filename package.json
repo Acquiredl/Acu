@@ -1,0 +1,9 @@
+{
+  "name": "acu-framework",
+  "private": true,
+  "type": "module",
+  "description": "Acu — filesystem-driven LLM pipeline framework",
+  "dependencies": {
+    "langfuse": "^3.0.0"
+  }
+}

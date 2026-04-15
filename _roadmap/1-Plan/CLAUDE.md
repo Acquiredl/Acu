@@ -1,3 +1,33 @@
+---
+stage: "Plan"
+role: "worker"
+version: "1.0"
+inputs:
+  - name: "intake.yaml"
+    required: true
+  - name: "source handoff document"
+    required: true
+outputs:
+  - name: "plan.md"
+    required: true
+tools_allowed: []
+gate_criteria:
+  - "plan.md exists"
+  - "plan.md contains every item from source handoff"
+  - "every item has a verifiable completion criterion"
+  - "dependencies are explicit with no circular references"
+  - "phase ordering respects dependencies"
+  - "source handoff referenced in intake.yaml"
+entry_criteria: []
+constraints:
+  - "Do not add items beyond what the handoff specifies"
+  - "Do not start implementation during the plan stage"
+parallel_eligible: false
+eval_criteria: []
+max_retries: 1
+gate_type: "inherit"
+eval_model: "inherit"
+---
 # Plan Stage — Roadmap
 
 ## Task

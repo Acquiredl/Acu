@@ -184,6 +184,37 @@ No network services are exposed. No multi-user access. No remote execution.
 
 ---
 
+## Observability Threat Surface
+
+**Added:** 2026-04-15 (Improvement 3: OTel trace emission to Langfuse)
+
+| Threat | Risk | Mitigation |
+|--------|------|------------|
+| Langfuse credentials exposed | Low | `observability.env` excluded from git via `.gitignore`. File permissions restrict access. |
+| Trace data contains sensitive content | Low | Gate criteria and check descriptions are structural metadata, not PII. Self-hosted Langfuse option keeps data on-premises. |
+| Langfuse unavailability blocks pipelines | None | Emission is best-effort — failure prints `[WARN]` to stderr, gate proceeds normally. `.audit-log.jsonl` is always the source of truth. |
+| Trace injection/tampering | Low | Traces are append-only in Langfuse. Local audit logs remain git-backed and SHA256-verified. |
+
+**Key design principle:** OTel emission is a parallel copy of existing audit data, never the primary record. The framework operates identically with or without Langfuse.
+
+---
+
+## Parallel Execution Threat Surface
+
+**Added:** 2026-04-15 (Improvement 4: Parallel Stages)
+
+| Threat | Risk | Mitigation |
+|--------|------|------------|
+| Worker output poisoning merge | Low | Merge agent reads all outputs but is prompted to synthesize, not blindly concatenate. Selection evaluator scores independently via eval_criteria. |
+| Resource exhaustion via excessive workers | Low | Worker count is set at generation time in fan_out config, not at runtime. `/acu-check` validates config. |
+| Model cost escalation | Medium | Multiple workers x multiple models can consume significant tokens. fan_out config makes this explicit and reviewable before execution. |
+| Competing worker bias from persona framing | Low | Personas shape analytical approach, not evaluation criteria. The selection evaluator uses the same eval_criteria regardless of which worker produced the output. |
+| Worker cross-contamination | None | Workers are isolated subagents. They cannot see each other's output during execution, cannot modify fan_out config, and cannot bypass merge/selection. |
+
+**Key design principle:** Parallel workers are subagents with scoped context. The audit trail in `.parallel/` provides full forensics for every worker, merge, and selection decision.
+
+---
+
 ## Review Schedule
 
 Re-evaluate this threat model when:

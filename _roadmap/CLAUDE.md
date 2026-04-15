@@ -1,3 +1,24 @@
+---
+pipeline: "Roadmap"
+version: "1.0"
+domain: "Framework evolution tracker for Acu initiatives"
+archetype: "custom"
+stages:
+  - "plan"
+  - "implement"
+  - "validate"
+unit_name: "initiative"
+standards:
+  - "Acu pipeline conventions"
+boundary_type: "scope"
+tools_enabled: false
+parallel_eligible: false
+gate_type: "structural"
+eval_model: "sonnet"
+pipeline_eval_criteria: []
+eval_chain: ["stage"]
+observability: false
+---
 # Roadmap — Framework Evolution Tracker
 
 Three-stage pipeline for tracking framework-level initiatives from handoff acceptance through implementation to validation. All framework evolution work lives here — not as loose files at root.

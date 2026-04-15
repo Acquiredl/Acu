@@ -453,6 +453,20 @@ function printGateSection(pulse) {
       console.log(`  ${String(c.count).padStart(3)}x  ${c.gate.padEnd(28)} ${c.desc} (${pCount})`);
     }
   }
+
+  // Semantic evaluation metrics
+  const semanticEvals = pulse.gate_analytics?.semantic_evaluation;
+  if (semanticEvals && Object.keys(semanticEvals).length > 0) {
+    console.log();
+    console.log('Semantic evaluation:');
+    for (const [gate, d] of Object.entries(semanticEvals)) {
+      const total = d.pass + d.fail;
+      const passRate = total > 0 ? (d.pass / total * 100).toFixed(0) + '%' : 'N/A';
+      const score = d.avgScore !== null ? d.avgScore.toFixed(2) : 'N/A';
+      const retries = d.avgRetries !== null ? d.avgRetries.toFixed(1) : '0';
+      console.log(`  ${pad(gate, 28)} pass: ${passRate} (${d.pass}/${total})  avg score: ${score}  avg retries: ${retries}  models: ${d.models.join(', ')}`);
+    }
+  }
   console.log();
 }
 

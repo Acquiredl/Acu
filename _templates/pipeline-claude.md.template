@@ -1,4 +1,24 @@
-<!-- acu-template: pipeline-claude.md — version 2026.04.11.1 -->
+---
+pipeline: "{{PIPELINE_NAME}}"
+version: "1.0"
+domain: "{{PIPELINE_DESCRIPTION}}"
+archetype: "{{ARCHETYPE_NAME}}"
+stages:
+{{FRONTMATTER_STAGES}}
+unit_name: "{{UNIT_LOWER}}"
+standards:
+{{FRONTMATTER_STANDARDS}}
+boundary_type: "{{BOUNDARY_TYPE}}"
+tools_enabled: {{HAS_TOOLING}}
+parallel_eligible: {{PARALLEL_ELIGIBLE}}
+gate_type: "{{PIPELINE_GATE_TYPE}}"
+eval_model: "{{PIPELINE_EVAL_MODEL}}"
+pipeline_eval_criteria:
+{{PIPELINE_EVAL_CRITERIA}}
+eval_chain: {{EVAL_CHAIN}}
+observability: {{OBSERVABILITY}}
+---
+<!-- acu-template: pipeline-claude.md — version 2026.04.15.5 -->
 # {{PIPELINE_NAME}} Pipeline
 
 {{PIPELINE_DESCRIPTION}}
