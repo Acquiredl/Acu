@@ -1,0 +1,50 @@
+initiative:
+  id: "template-gaps-sboxdevkit"
+  name: "Template Gaps from SboxDevKit"
+  status: "complete"
+  current_stage: "validate"
+  current_phase: ""
+  created: "2026-04-16"
+  updated: "2026-04-16T21:31:29Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-16"
+    completed: "2026-04-16T20:43:04Z"
+  implement:
+    status: "complete"
+    entered: "2026-04-16T20:43:04Z"
+    completed: "2026-04-16T21:26:03Z"
+  validate:
+    status: "complete"
+    entered: "2026-04-16T21:26:03Z"
+    completed: "2026-04-16T21:31:29Z"
+
+items:
+  target-date-field:
+    name: "Optional target_date in pipeline frontmatter; surface time-to-deadline in gates/status"
+    pillar: "template-improvements"
+    phase: 1
+    status: "done"
+    started: "2026-04-16T20:50:00Z"
+    completed: "2026-04-16T20:58:00Z"
+    evidence: "_templates/pipeline-claude.md.template — added optional target_date field after domain with inline comment; version bump 2026.04.15.5 -> 2026.04.16.1. _templates/pipeline-status.sh.template — added deadline-reading block that no-ops on empty or invalid dates; version bump 2026.04.11.2 -> 2026.04.16.1. Logic verified: valid date prints 'N days remaining', empty is silent, invalid is silent. DEVIATION from plan: skipped pipelines/CLAUDE.md one-liner on low-friction grounds — field documentation belongs next to the field (inline comment), not in a routing index."
+  observability-cloud-config:
+    name: "observability.env.template supports cloud vs self-hosted with example values"
+    pillar: "template-improvements"
+    phase: 1
+    status: "done"
+    started: "2026-04-16T20:45:00Z"
+    completed: "2026-04-16T20:46:00Z"
+    evidence: "_templates/observability.env.template — added acu-template version marker 2026.04.16.1; restructured host block to show self-hosted default + US/EU cloud alternatives as clearly labeled commented lines"
+  tool-discovery-registry:
+    name: "Build-archetype tool registry gains a discovery section populated during Research"
+    pillar: "template-improvements"
+    phase: 1
+    status: "done"
+    started: "2026-04-16T21:05:00Z"
+    completed: "2026-04-16T21:20:00Z"
+    evidence: "_templates/registry.yaml.template — added `discovered:` section as top-level sibling of `tools:`, empty by default, with inline docs and schema example showing the required `discovered_in_stage` provenance field; version bump -> 2026.04.16.1. _templates/runner.sh.template — get_tool_field yq query extended from `.tools[]` to `(.tools[]?, .discovered[]?)` union so discovered tools resolve identically at dispatch; version bump -> 2026.04.16.1. .claude/skills/acu-check/SKILL.md — Check 12 sub-check updated to validate tools_allowed against BOTH arrays. _templates/PLACEHOLDERS.md — target_date added to Static fields list (carry-over from item 2). PLAN DEVIATIONS: (a) plan underweighted consumer coupling — runner.sh and acu-check needed updates to avoid shipping a broken feature; surfaced during implementation, scope extended accordingly. (b) skipped stage-claude.md.template edit — a global note for a Research-only concern is the wrong primitive; inline docs in registry.yaml.template land the info where users actually need it. (c) skipped archetypes.yaml — no archetype-level guidance needed once the registry itself documents the feature. End-to-end verified: upfront tool, discovered tool, and missing tool all resolve correctly via the union query."
+
+notes: "Source: Brainstorming/REFLECTIONS.md — SboxDevKit 2026-04-15 reflection. No existing pipeline is forced to migrate; changes flow through /acu-update."

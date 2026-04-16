@@ -1,0 +1,50 @@
+initiative:
+  id: "template-gaps-sboxdevkit"
+  name: "Template Gaps from SboxDevKit"
+  status: "active"
+  current_stage: "implement"
+  current_phase: ""
+  created: "2026-04-16"
+  updated: "2026-04-16T20:43:04Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-16"
+    completed: "2026-04-16T20:43:04Z"
+  implement:
+    status: "in_progress"
+    entered: "2026-04-16T20:43:04Z"
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+items:
+  target-date-field:
+    name: "Optional target_date in pipeline frontmatter; surface time-to-deadline in gates/status"
+    pillar: "template-improvements"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  observability-cloud-config:
+    name: "observability.env.template supports cloud vs self-hosted with example values"
+    pillar: "template-improvements"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  tool-discovery-registry:
+    name: "Build-archetype tool registry gains a discovery section populated during Research"
+    pillar: "template-improvements"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+
+notes: "Source: Brainstorming/REFLECTIONS.md — SboxDevKit 2026-04-15 reflection. No existing pipeline is forced to migrate; changes flow through /acu-update."
