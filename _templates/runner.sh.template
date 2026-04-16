@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# acu-template: runner.sh — version 2026.04.11.1
+# acu-template: runner.sh — version 2026.04.16.1
 # runner.sh — Playbook execution engine for the {{PIPELINE_NAME}} Pipeline
-# Reads YAML playbooks, resolves tools from registry.yaml, enforces boundaries,
-# and executes steps inside the {{UNIT_LOWER}}'s context.
+# Reads YAML playbooks, resolves tools from registry.yaml (both `tools:` and
+# `discovered:` arrays), enforces boundaries, and executes steps inside the
+# {{UNIT_LOWER}}'s context.
 #
 # Usage: runner.sh <playbook.yaml> <{{UNIT_LOWER}}-dir>
 # Requires: yq, bash 4+
@@ -65,7 +66,9 @@ log() {
 get_tool_field() {
     local tool_name="$1"
     local field="$2"
-    yq -r ".tools[] | select(.name == \"$tool_name\") | $field" "$REGISTRY"
+    # Resolve from both `tools:` (upfront) and `discovered:` (runtime-added).
+    # Provenance is preserved in the registry for audit but not used for dispatch.
+    yq -r "(.tools[]?, .discovered[]?) | select(.name == \"$tool_name\") | $field" "$REGISTRY"
 }
 
 check_tool_installed() {

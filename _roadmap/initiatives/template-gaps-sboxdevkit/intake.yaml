@@ -1,0 +1,21 @@
+initiative:
+  id: "template-gaps-sboxdevkit"
+  name: "Template Gaps from SboxDevKit"
+  description: "Close three template gaps surfaced during SboxDevKit pipeline generation: deadline awareness, cloud-vs-self-hosted observability config, and tool discovery for build archetypes."
+  created: "2026-04-16"
+  engineer: "Stephane"
+
+source:
+  type: "manual"
+  path: "Brainstorming/REFLECTIONS.md"
+  date: "2026-04-15"
+
+scope:
+  pillars: 1
+  items: 3
+  phases: 1
+  affects:
+    - templates
+
+rules:
+  scope: "framework changes only — no pipeline-specific work"

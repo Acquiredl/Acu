@@ -128,6 +128,7 @@ YAML frontmatter blocks (between `---` delimiters) are prepended to both pipelin
 
 **Static fields (no placeholders — hardcoded defaults):**
 - `version: "1.0"` — Frontmatter schema version
+- `target_date: ""` — Optional ISO 8601 date. Activated in 2026.04.16.1. When set by the user post-generation, `pipeline-status.sh` surfaces days remaining. Empty string is the opt-out default.
 - `parallel_eligible` — Activated in 2026.04.15.4. Set by `/acu-new` Input 10. Pipeline-level: `true` if any stage uses parallel execution.
 - `observability: false` — Reserved for Improvement 3 (OTel traces)
 

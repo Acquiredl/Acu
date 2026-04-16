@@ -8,6 +8,96 @@ pipelines up to the current template standard without touching domain-specific c
 
 ---
 
+## 2026.04.16.1 — Template Gaps from SboxDevKit
+
+Source: Roadmap initiative `template-gaps-sboxdevkit` (see `_roadmap/initiatives/template-gaps-sboxdevkit/plan.md`), driven by observations in `Brainstorming/REFLECTIONS.md` during the SboxDevKit pipeline generation. Closes three friction gaps surfaced by real use. First initiative to ship under the new Low Learning Friction pillar (`_templates/methods/low-learning-friction.md`).
+
+### What changed
+
+**observability.env.template** — Restructured host block to make cloud adoption a one-line toggle.
+- Default `LANGFUSE_HOST` remains self-hosted (`http://localhost:3000`) — no behavioral change.
+- Commented examples added for US (`https://us.cloud.langfuse.com`) and EU (`https://cloud.langfuse.com`) cloud regions.
+- Added the missing `acu-template: observability.env — version 2026.04.16.1` marker (this template was previously unversioned).
+- No new fields, no new prompts during `/acu-new` — a user who doesn't care sees no friction.
+
+**pipeline-claude.md.template** — Optional `target_date` field added to frontmatter.
+- Placed after `domain:` with an inline comment documenting the ISO 8601 format.
+- Empty string (`""`) is the default and a valid value — omitting the field is opting out.
+- No gate enforcement. This is informational, not prescriptive.
+- Version bump: 2026.04.15.5 → 2026.04.16.1.
+
+**pipeline-status.sh.template** — Deadline-aware header block.
+- Reads the pipeline's CLAUDE.md frontmatter for `target_date` at runtime.
+- Prints one of: "Target date: <date> (N days remaining)", "(today)", "(N days overdue)" when the field is present and parseable.
+- Empty string, missing field, or unparseable date → no output; existing per-unit table is unchanged.
+- Version bump: 2026.04.11.2 → 2026.04.16.1.
+
+**registry.yaml.template** — New `discovered:` section for runtime-added tools.
+- Top-level array, sibling of `tools:`. Empty by default.
+- Schema mirrors `tools:` with one additional required field: `discovered_in_stage` (provenance).
+- Inline documentation + schema example live in the template itself — pedagogically the right place for a feature users only touch when they need it.
+- Version bump: 2026.04.11.1 → 2026.04.16.1.
+
+**runner.sh.template** — Tool resolution extended to both arrays.
+- `get_tool_field` yq query changed from `.tools[]` to `(.tools[]?, .discovered[]?)` union.
+- Discovered tools resolve identically to upfront-declared ones at dispatch — provenance is preserved in the registry for audit but not used for routing.
+- Registries without a `discovered:` key behave unchanged.
+- Version bump: 2026.04.11.1 → 2026.04.16.1.
+
+**acu-check SKILL.md** — Check 12 sub-check updated.
+- `tools_allowed` validation now reads both `tools:` and `discovered:` arrays when looking up tool names.
+- Prevents false "unknown tool" warnings for pipelines that legitimately populate `discovered:` during execution.
+
+**PLACEHOLDERS.md** — `target_date: ""` added to the pipeline-frontmatter static-fields list.
+
+### Design decisions
+
+- **Low Learning Friction pillar is now load-bearing.** Every item in this initiative was scoped against it. Three concrete calls came out of that discipline: (a) no `/acu-new` prompt for cloud vs self-hosted — a question most users don't care about shouldn't block generation; (b) `target_date` is fully optional with no schema enforcement — a deadline-missed state is not a gate concern; (c) `discovered:` ships with inline docs in the template itself rather than scattered across stage-claude notes and archetype guidance.
+- **Plan deviation, logged:** the plan listed `pipelines/CLAUDE.md` and `_templates/stage-claude.md.template` as touched files. Both were dropped during implementation — docs for an optional frontmatter field belong next to the field, not in a routing index or a global stage template. Adding a separate archetypes.yaml note for build-archetype tool discovery was also dropped for the same reason.
+- **Plan under-scoped coupling:** `discovered:` required updates to `runner.sh` and `acu-check` in addition to the registry template. Shipping the template-only change would have yielded a non-functional feature. Scope was extended during implementation to cover the consumers; evidence captured in initiative status.
+- **Provenance over routing:** `discovered_in_stage` is required in every `discovered:` entry but carries no dispatch semantics. This preserves an audit trail without coupling the runner to the discovery model.
+
+### Patches
+
+```yaml
+patches:
+  - id: observability-cloud-config-v1
+    description: "Update observability.env header to show self-hosted default + US/EU cloud alternatives"
+    applies_to: "observability.env"
+    type: informational
+    note: "Existing pipelines should refresh the header comments and host block manually — regeneration would overwrite keys. New pipelines pick up the new template automatically."
+
+  - id: target-date-field-v1
+    description: "Add optional target_date to pipeline CLAUDE.md frontmatter"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Add `target_date: \"\"` after `domain:` in the frontmatter to opt into deadline awareness. Empty = no change in behavior."
+
+  - id: pipeline-status-deadline-v1
+    description: "Add target_date reader to pipeline-status.sh"
+    applies_to: "gates/pipeline-status.sh"
+    type: regenerate_from_template
+    template: "pipeline-status.sh.template"
+    requires_meta: [unit_name, unit_lower]
+    note: "Safe to regenerate — this script has no user content, only templated placeholders. UNITS_DIR is not stored in .acu-meta.yaml; /acu-update should preserve the existing UNITS_ROOT value from the current pipeline-status.sh (the directory name after `$SCRIPT_DIR/../`) when regenerating, rather than deriving it."
+
+  - id: registry-discovered-section-v1
+    description: "Add empty discovered: array to registry.yaml for runtime-added tools"
+    applies_to: "tools/registry.yaml"
+    type: informational
+    note: "Append `discovered: []` at the end of existing registry.yaml files. Users adding discovered tools must include the `discovered_in_stage` field per entry. Regeneration is NOT safe — it would destroy existing tool definitions."
+
+  - id: runner-union-resolution-v1
+    description: "Update runner.sh tool resolution to read both tools: and discovered: arrays"
+    applies_to: "runner.sh"
+    type: regenerate_from_template
+    template: "runner.sh.template"
+    requires_meta: [pipeline_name, unit_lower, unit_upper, unit_name]
+    note: "runner.sh has no user content — safe to regenerate. Pipelines with no discovered: key are unaffected (yq `?` suppresses the missing-key error)."
+```
+
+---
+
 ## 2026.04.15.5 — Hierarchical Evaluation: Pipeline-level + Sauron-level tiers
 
 Source: University vision — completes the three-tier evaluation hierarchy: stage (teacher), pipeline (faculty head), system (Sauron/uniboss). Work flows up through increasingly strict evaluation before delivery.
