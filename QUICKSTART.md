@@ -21,7 +21,7 @@ think of it like setting up an office. you create departments (pipelines), each 
    - **Claude Desktop app** — download from [claude.ai/download](https://claude.ai/download). works on Mac and Windows.
    - **CLI** — if you're comfortable with terminals: `npm install -g @anthropic-ai/claude-code`
 
-3. **An Anthropic API key** — Claude Code needs this to talk to the AI. get one at [console.anthropic.com](https://console.anthropic.com). it's pay-per-use, a typical pipeline run costs a few cents depending on the model and how much work is involved.
+3. **An Anthropic API key** — Claude Code needs this to talk to the AI. get one at [console.anthropic.com](https://console.anthropic.com). it's pay-per-use, a typical pipeline run costs a few cents depending on the model and how much work is involved. You can run it without an api key but you will lose the semantic check gate layer. explained on step 6.
 
 ## step 1: clone the repo
 
@@ -109,6 +109,8 @@ bash gates/advance.sh reviews/001-dune/ select-to-read
 the gate checks if the work meets requirements. if it passes, `status.yaml` advances to the next stage and the transition gets logged. if it fails, it tells you what's missing and you fix it.
 
 keep working through stages and passing gates until the pipeline is complete.
+
+\* you don't need to manually run the bash command in a terminal just tell claude code to run it for you or do the next step. these pauses are so you can review work before it gets sent through gates if desired. The parameter to turn the semantic gate on and off is gate_type in the CLAUDE.md frontmatter. Set it to "structural" to disable semantic evaluation (no API key needed). just ask Acu via claude code do it for you.
 
 ## step 7: there's no step 7
 
