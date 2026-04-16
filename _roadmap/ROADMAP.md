@@ -12,7 +12,7 @@ Master index of all framework evolution initiatives. Each initiative is tracked 
 
 | Initiative | Source | Items | Completed |
 |------------|--------|-------|-----------|
-| *(none yet)* | | | |
+| [template-gaps-sboxdevkit](initiatives/template-gaps-sboxdevkit/) | Brainstorming/REFLECTIONS.md | 3 | 2026-04-16 |
 
 ## How This Works
 

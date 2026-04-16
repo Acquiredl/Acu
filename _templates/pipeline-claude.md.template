@@ -2,6 +2,7 @@
 pipeline: "{{PIPELINE_NAME}}"
 version: "1.0"
 domain: "{{PIPELINE_DESCRIPTION}}"
+target_date: ""                            # Optional — ISO 8601 date (YYYY-MM-DD). When set, pipeline-status.sh surfaces days remaining. Leave empty to opt out.
 archetype: "{{ARCHETYPE_NAME}}"
 stages:
 {{FRONTMATTER_STAGES}}
@@ -18,7 +19,7 @@ pipeline_eval_criteria:
 eval_chain: {{EVAL_CHAIN}}
 observability: {{OBSERVABILITY}}
 ---
-<!-- acu-template: pipeline-claude.md — version 2026.04.15.5 -->
+<!-- acu-template: pipeline-claude.md — version 2026.04.16.1 -->
 # {{PIPELINE_NAME}} Pipeline
 
 {{PIPELINE_DESCRIPTION}}

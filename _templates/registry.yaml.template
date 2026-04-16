@@ -1,4 +1,4 @@
-# acu-template: registry.yaml — version 2026.04.11.1
+# acu-template: registry.yaml — version 2026.04.16.1
 # Tool / Resource Registry for {{PIPELINE_NAME}} Pipeline
 # Defines all tools, their interfaces, execution constraints, and stage mappings.
 # Referenced by playbooks and the runner.
@@ -36,3 +36,44 @@ tools:
 #    metadata:
 #      stages: []                   # Which pipeline stages use this tool
 #      categories: []               # Freeform tags
+
+# ---------------------------------------------------------------------------
+# Discovered tools — populated at runtime, typically by a Research stage
+# ---------------------------------------------------------------------------
+# Leave empty when declaring all tools upfront is feasible. Pipelines that
+# cannot know the full tool set at creation time (e.g., a Research stage that
+# surveys third-party libraries) append entries here as they are identified.
+#
+# Schema mirrors `tools:` exactly, with ONE additional required field:
+#   discovered_in_stage: <stage-name>   # Which stage added this tool (provenance)
+#
+# The runner resolves tools from `tools:` and `discovered:` identically — a
+# tool added here is indistinguishable from an upfront-declared one at
+# execution time. Provenance is preserved for audit, not for dispatch.
+#
+# Example:
+#
+#  - name: resgen
+#    discovered_in_stage: research
+#    binary: resgen
+#    description: "Generates binary .resources files from .resx"
+#    version_check: "resgen /?"
+#    inputs:
+#      required:
+#        - name: target
+#          type: filepath
+#          description: ".resx input file"
+#      optional: []
+#    output:
+#      format: binary
+#      parser: null
+#      evidence_type: build-artifact
+#      artifacts:
+#        - "{unit}/build/{target}.resources"
+#    execution:
+#      timeout: 60
+#    metadata:
+#      stages: ["build"]
+#      categories: ["dotnet"]
+
+discovered: []

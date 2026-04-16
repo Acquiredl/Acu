@@ -159,7 +159,7 @@ Parse the YAML frontmatter from the pipeline CLAUDE.md (content between the two 
 
 For each stage CLAUDE.md with frontmatter, parse and check for required fields: `stage`, `role`, `version`, `outputs`, `gate_criteria`.
 
-**Sub-check — tools_allowed validation:** If the pipeline frontmatter has `tools_enabled: true` and a `registry.yaml` exists, check each stage's `tools_allowed` list. Every tool name should appear as a tool entry in `registry.yaml`. Unknown tools → `[WARN] tools_allowed in {stage} references unknown tools: {names}`.
+**Sub-check — tools_allowed validation:** If the pipeline frontmatter has `tools_enabled: true` and a `registry.yaml` exists, check each stage's `tools_allowed` list. Every tool name should appear as an entry in EITHER the `tools:` array or the `discovered:` array in `registry.yaml` — the runner resolves them identically. Unknown tools (absent from both arrays) → `[WARN] tools_allowed in {stage} references unknown tools: {names}`.
 
 Results:
 - All required fields present everywhere → `[PASS] all required frontmatter fields present`

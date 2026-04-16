@@ -12,6 +12,7 @@ Acu's architecture is organized around isolation, gates, and structure:
 - **Deterministic gates** — Every stage transition requires a binary pass/fail check (file existence, word counts, section headers, cross-references). Nothing advances without passing its gate.
 - **Structure as schema** — Templates enforce directory layout and file requirements. CLAUDE.md files scope what context gets loaded. Validation is structural, not semantic.
 - **Audit trail** — Every transition is logged with session ID and SHA256. `syslog.sh` aggregates across pipelines.
+- **Low learning friction** — Complexity will grow; the learning *gradient* is a design choice. Prefer optional over required, progressive disclosure over upfront config, legible names over clever ones. See `_templates/methods/low-learning-friction.md`.
 - **Threat model** — Pipeline isolation, input validation, and defined attack surfaces. See `THREAT-MODEL.md`.
 
 For the full design rationale mapped against agent engineering standards, see `_templates/methods/agent-engineering.md`.

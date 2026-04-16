@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# acu-template: pipeline-status.sh — version 2026.04.11.2
+# acu-template: pipeline-status.sh — version 2026.04.16.1
 # pipeline-status.sh — Summary of all {{UNIT_LOWER}}s in this pipeline.
 # Read-only. No arguments needed.
 #
@@ -9,6 +9,28 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UNITS_ROOT="$SCRIPT_DIR/../{{UNITS_DIR}}"
+PIPELINE_CLAUDE="$SCRIPT_DIR/../CLAUDE.md"
+
+# --- target_date (optional) ---
+# Surfaces deadline awareness when the pipeline's frontmatter defines target_date.
+# No output when target_date is empty or unparseable — current behavior preserved.
+if [[ -f "$PIPELINE_CLAUDE" ]]; then
+    target_date=$(grep "^target_date:" "$PIPELINE_CLAUDE" 2>/dev/null | head -1 | awk -F'"' '{print $2}')
+    if [[ -n "${target_date:-}" ]]; then
+        if target_epoch=$(date -d "$target_date" +%s 2>/dev/null); then
+            now_epoch=$(date +%s)
+            days_left=$(( (target_epoch - now_epoch) / 86400 ))
+            if (( days_left > 0 )); then
+                echo "Target date: $target_date ($days_left days remaining)"
+            elif (( days_left == 0 )); then
+                echo "Target date: $target_date (today)"
+            else
+                echo "Target date: $target_date ($((-days_left)) days overdue)"
+            fi
+            echo ""
+        fi
+    fi
+fi
 
 if [[ ! -d "$UNITS_ROOT" ]]; then
     echo "No {{UNITS_DIR}}/ directory found at $UNITS_ROOT"
