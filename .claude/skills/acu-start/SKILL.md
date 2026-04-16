@@ -93,19 +93,21 @@ Creating a new component in MyUIKit (next ID: 002)
 
 ### Step 5: BUILD — Create the unit
 
+**Timestamp rule:** All timestamps MUST be the actual current time from `date -u +"%Y-%m-%dT%H:%M:%SZ"`. Run this command once at the start of this step and reuse the value. Never use midnight (`T00:00:00Z`) or any other approximation — cycle-time metrics depend on accurate timestamps.
+
 1. **Create directory:** `{pipeline}/{units.directory}/{id}-{name-slug}/`
 
 2. **Generate intake.yaml** — Fill the template with user's answers:
    - Set `id` to the auto-generated ID
-   - Set `created` to current ISO 8601 timestamp
+   - Set `created` to the timestamp from the command above
    - Convert user answers to proper YAML types (arrays for lists, booleans for yes/no)
 
 3. **Generate status.yaml** — Fill the template with:
    - Set `id` and `name` to match intake
    - Set `status` to `"active"`
    - Set `current_stage` to the first stage name (lowercase)
-   - Set `created` and `updated` to current ISO 8601 timestamp
-   - Set first stage's `status` to `"in_progress"` and `entered` to current timestamp
+   - Set `created` and `updated` to the timestamp from the command above
+   - Set first stage's `status` to `"in_progress"` and `entered` to the same timestamp
    - All other stages stay `"pending"` with empty timestamps
 
 ### Step 6: CONFIRM — Report what was created

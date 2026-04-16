@@ -8,6 +8,19 @@ Thumbs.db
 
 # Secrets
 .env
+observability.env
 
 # Dependencies
 node_modules/
+
+# Personal/sensitive pipelines
+pipelines/CareerLaunch/
+
+# Pipeline data (audit logs, checkpoints, parallel outputs)
+**/.audit-log.jsonl
+**/.checkpoints/
+**/.parallel/
+**/.gate-*.passed
+
+# Observability secrets
+pipelines/*/observability.env

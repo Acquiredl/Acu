@@ -144,9 +144,21 @@ function computeCycleTimes(units) {
   const times = [];
   for (const u of units) {
     if (!u.status?.stages) continue;
+    const stageNames = Object.keys(u.status.stages);
     for (const [stage, t] of Object.entries(u.status.stages)) {
       if (t.entered && t.completed) {
-        const ms = new Date(t.completed) - new Date(t.entered);
+        let start = new Date(t.entered);
+        // For the first stage, use the earliest audit log timestamp as work-start
+        // to avoid counting idle time between unit creation and actual work
+        if (stage === stageNames[0] && u.entries.length > 0) {
+          const firstAuditTs = new Date(u.entries[0].ts);
+          // Only use audit timestamp if it falls within the stage window
+          // (i.e. after entered but before completed)
+          if (firstAuditTs > start && firstAuditTs < new Date(t.completed)) {
+            start = firstAuditTs;
+          }
+        }
+        const ms = new Date(t.completed) - start;
         if (ms > 0) times.push({ pipeline: u.pipeline, unit: u.unit, stage, ms });
       }
     }
