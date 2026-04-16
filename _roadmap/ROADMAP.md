@@ -6,7 +6,7 @@ Master index of all framework evolution initiatives. Each initiative is tracked 
 
 | Initiative | Source | Items | Phase | Stage | Status |
 |------------|--------|-------|-------|-------|--------|
-| *(none)* | | | | | |
+| [learning-friction-research](initiatives/learning-friction-research/) | Low Learning Friction stub | 5 | 1 (research) | Plan | Plan complete — ready for Implement |
 
 ## Completed Initiatives
 

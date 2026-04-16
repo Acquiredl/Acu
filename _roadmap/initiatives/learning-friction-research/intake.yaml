@@ -1,0 +1,22 @@
+initiative:
+  id: "learning-friction-research"
+  name: "Learning Friction Research"
+  description: "Investigate established self-learning methodologies (Diátaxis, cognitive load theory, progressive disclosure, notional machines) and translate findings into validated design rules that replace the stub at _templates/methods/low-learning-friction.md."
+  created: "2026-04-16"
+  engineer: "Stephane"
+
+source:
+  type: "manual"
+  path: "_templates/methods/low-learning-friction.md"
+  date: "2026-04-16"
+
+scope:
+  pillars: 1
+  items: 5
+  phases: 2
+  affects:
+    - methods
+    - research
+
+rules:
+  scope: "framework methodology only — no per-pipeline design rules yet; those flow from the validated methods doc in follow-up initiatives"
