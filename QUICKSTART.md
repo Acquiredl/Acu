@@ -1,143 +1,145 @@
-# Quickstart — Your First Acu Pipeline
+# quickstart — zero to pipeline
 
-Build a working pipeline in 5 minutes. By the end, you'll understand how Acu turns a directory structure into a controlled AI workflow.
+*\* this guide is actively being worked on. if something's unclear or missing, that's on me not you.*
 
-## What is Acu?
+this guide assumes you have never used Acu, never used Claude Code, and maybe never used a terminal. if that's not you and you just want the technical overview, read [README.md](README.md) instead.
 
-Acu is a framework where **folders are the program** and **the AI is the runtime**.
+## what is this thing
 
-Each directory has a `CLAUDE.md` file that tells the AI what to do in that context — what it's responsible for, what it can't do, and where to send work that isn't its. The AI reads that file and operates within those boundaries.
+Acu is a framework that lets you orchestrate AI work using folders and files. you create a directory structure that describes what you want done, and the AI reads that structure and does the work. there's no code to write. no API to learn. you describe the environment, the AI operates within it.
 
-- **Sauron** — routes work to the right pipeline, reviews output, enforces structure
-- **Pipelines** — isolated, self-contained projects, each with their own stages and rules
-- **Stages** — steps within a pipeline (Research, Design, Build, etc.)
-- **Gates** — deterministic checks at every stage transition. Work can't advance without passing.
-- **Templates** — versioned blueprints that generate new pipelines with consistent structure
+think of it like setting up an office. you create departments (pipelines), each department has rooms (stages), and each room has a job description posted on the wall (CLAUDE.md). the AI walks into a room, reads the job description, does the work, and moves to the next room. between rooms there's a security guard (gate) that checks if the work meets the requirements before letting it through.
 
-You don't write code to control the AI. You shape the environment it operates in.
+## what you need
 
-## Step 1: Generate a pipeline
+3 things:
 
-Run `/acu-new` in Claude Code. The generator asks 7 questions in one batch:
+1. **Git** — to clone the repo. if you don't have it: [git-scm.com/downloads](https://git-scm.com/downloads). install it, all defaults are fine.
 
-| # | Question | What it means |
-|---|----------|---------------|
-| 1 | Domain name + description | What is this pipeline for? |
-| 2 | Stages (ordered) | What steps does work flow through? |
-| 3 | Final deliverable | What does "done" look like? |
-| 4 | Tools / resources | Any CLI tools, APIs, or manual procedures? |
-| 5 | Standards | What methodology or framework governs quality? |
-| 6 | Hard constraints | What must NEVER happen? |
-| 7 | Work unit naming | What's a single run called? Who operates it? |
+2. **Claude Code** — the AI that runs inside the framework. pick whichever way works for you:
+   - **VS Code extension** — if you already use VS Code, install the Claude Code extension from the marketplace. open the extensions panel (Ctrl+Shift+X), search "Claude Code", install it.
+   - **Claude Desktop app** — download from [claude.ai/download](https://claude.ai/download). works on Mac and Windows.
+   - **CLI** — if you're comfortable with terminals: `npm install -g @anthropic-ai/claude-code`
 
-**Example answers for a "Book Review" pipeline:**
+3. **An Anthropic API key** — Claude Code needs this to talk to the AI. get one at [console.anthropic.com](https://console.anthropic.com). it's pay-per-use, a typical pipeline run costs a few dollars depending on the model and how much work is involved.
 
-1. **BookReview** — Pipeline for reading books and producing structured reviews.
-2. **Select → Read → Draft → Edit → Publish** — five stages.
-3. A published review (markdown) with rating, summary, analysis, and recommendation.
-4. No automated tooling. Manual process.
-5. Reviews follow a consistent structure: no spoilers in summary, analysis grounded in quotes.
-6. Never publish without completing the book. Never fabricate quotes.
-7. A single run is a **review**. Operated by a **reviewer**.
+## step 1: clone the repo
 
-The generator shows you the proposed design. Confirm it, and it builds the full pipeline directory with all structural files.
+open a terminal (or the terminal inside VS Code) and run:
 
-## Step 2: Explore what was created
-
-After generation, look at what appeared in `pipelines/BookReview/`:
-
-```
-BookReview/
-├── CLAUDE.md                    # Pipeline identity + routing table
-├── .acu-meta.yaml              # Template version tracking
-├── REFLECTIONS.md               # Lessons learned (empty, you'll fill it)
-├── 1-Select/
-│   └── CLAUDE.md                # Stage identity: "I help pick the next book"
-├── 2-Read/
-│   └── CLAUDE.md                # Stage identity: "I track reading progress"
-├── 3-Draft/
-│   └── CLAUDE.md                # Stage identity: "I write the first draft"
-├── 4-Edit/
-│   └── CLAUDE.md                # Stage identity: "I refine and tighten"
-├── 5-Publish/
-│   └── CLAUDE.md                # Stage identity: "I finalize and ship"
-├── reviews/                     # Work units live here
-├── templates/
-│   ├── intake.yaml              # Template for creating a new review
-│   ├── status.yaml              # Template for tracking review state
-│   ├── intake.schema.yaml       # Validation schema for intake
-│   └── status.schema.yaml       # Validation schema for status
-└── gates/
-    ├── gate-select-to-read.sh   # Transition validator
-    ├── gate-read-to-draft.sh    # Transition validator
-    ├── gate-draft-to-edit.sh    # Transition validator
-    ├── gate-edit-to-publish.sh  # Transition validator
-    └── advance.sh               # Gate orchestrator
+```bash
+git clone https://github.com/Acquiredl/Acu.git
+cd Acu
 ```
 
-Every `CLAUDE.md` in every stage scopes the AI's behavior for that context. As work moves through the pipeline, the AI's instructions change with it.
+that's it. you now have the framework on your machine.
 
-## Step 3: Create a work unit
+## step 2: open it
 
-Run `/acu-start` in Claude Code. It detects your pipeline, reads its templates, and asks you targeted questions:
+**if you're using VS Code:**
+- File → Open Folder → select the `Acu` folder you just cloned
+- open the Claude Code panel (it should appear in your sidebar after installing the extension)
+
+**if you're using Claude Desktop:**
+- open the app, it should detect the folder or you can point it to the `Acu` directory
+
+**if you're using the CLI:**
+- just make sure you're in the `Acu` directory and type `claude`
+
+the important thing is that Claude Code is running inside the Acu folder. it reads the `CLAUDE.md` files in the directory structure and those files tell it how to behave. if you're not in the right folder it won't know what Acu is.
+
+## step 3: create your first pipeline
+
+type this into Claude Code:
 
 ```
-Creating a new review in BookReview (next ID: 001)
-
-1. Name — Short name for this review (e.g., "dune", "sapiens")
-2. Description — What book are you reviewing?
-3. Author — Who wrote it?
-4. Target date — When do you want to publish?
+/acu-new
 ```
 
-Answer the questions, and it creates the unit directory with populated files:
+that's a slash command. it triggers the pipeline generator. the generator asks you questions about what you want to build:
+
+- what is this pipeline for?
+- what are the stages?
+- what does "done" look like?
+- any tools or resources?
+- what standards apply?
+- what should never happen?
+- what do you call a single run?
+
+you can answer these however you want. here's a simple example:
+
+> "i want a pipeline called BookReview for reading books and writing reviews. stages are Select, Read, Draft, Edit, Publish. the final output is a published review in markdown. no automated tooling, it's all manual. reviews should have no spoilers in the summary and quotes should be real. never publish without finishing the book. a single run is called a review, operated by a reviewer."
+
+\* this is a perfect example. don't be scared if you're missing information, Acu will prompt you for more.
+
+the generator shows you the proposed design. confirm it and it builds everything — directories, gate scripts, templates, the works.
+
+## step 4: start a work unit
+
+now you have a pipeline. to actually use it, type:
+
+```
+/acu-start
+```
+
+this creates a new work unit inside your pipeline. it asks you a few targeted questions (name, description, target date) and creates a directory with your answers filled in:
 
 ```
 reviews/001-dune/
-├── intake.yaml    # Filled with your answers
-└── status.yaml    # First stage set to in_progress
+├── intake.yaml    # what you're working on
+└── status.yaml    # where it is in the pipeline
 ```
 
-`intake.yaml` describes WHAT you're working on. `status.yaml` tracks WHERE it is in the pipeline. Together, they're a self-describing state machine. No manual copying, no blank templates to fill.
+## step 5: do the work
 
-## Step 4: Do the work
+tell Claude Code something like:
 
-Tell the AI: "Work on book review 001." Sauron reads `ROUTES.yaml`, routes to the BookReview pipeline, which reads `status.yaml` to find the current stage, then loads that stage's `CLAUDE.md`. The AI now knows exactly who it is and what to produce.
+> "work on book review 001-dune"
 
-## Step 5: Pass a gate
+it figures out which pipeline you're in, reads `status.yaml` to see what stage you're on, loads that stage's instructions, and starts working. the AI's behavior changes at each stage because each stage has different instructions.
 
-When a stage's work is done, run the gate:
+## step 6: advance through gates
+
+when a stage is done, run the gate to advance:
 
 ```bash
-bash gates/advance.sh reviews/001-some-book/ select-to-read
+bash gates/advance.sh reviews/001-dune/ select-to-read
 ```
 
-The gate checks:
-- Does `intake.yaml` match its schema?
-- Does `status.yaml` match its schema?
-- Are the stage-specific exit criteria met?
+the gate checks if the work meets requirements. if it passes, `status.yaml` advances to the next stage and the transition gets logged. if it fails, it tells you what's missing and you fix it.
 
-**Pass** → `status.yaml` advances to the next stage. An audit log entry is written.
-**Fail** → Nothing changes. Fix the issue, try again.
+keep working through stages and passing gates until the pipeline is complete.
 
-No negotiation. No "close enough." The gate is a binary check.
+## step 7: there's no step 7
 
-## Step 6: Repeat until done
+that's it. you just ran an AI-orchestrated pipeline. the directory structure was the program and the AI was the runtime. no code, no configuration files, no orchestration logic. just folders with instructions and bash scripts that check the output.
 
-Work through each stage. Pass each gate. When the final stage completes, `status.yaml` shows `current_stage: published` and every stage shows `status: passed`.
+## other useful commands
 
-The work unit has a complete, auditable history — every gate transition timestamped and logged.
+once you're comfortable with the basics:
 
-## What just happened
+| command | what it does |
+|---------|-------------|
+| `/acu-check` | scans your pipelines for structural problems |
+| `/acu-observe` | framework-wide health snapshot |
+| `/acu-pulse` | pipeline metrics (gate pass rates, cycle times) |
+| `/acu-update` | brings pipelines up to the latest template version |
+| `/acu-brainstorm` | stress-test an idea before building it |
+| `/acu-research` | structured research with source citations |
+| `/acu-learn` | learn a topic through the framework's study pipeline |
+| `/acu-eval` | run semantic quality evaluation on stage output |
 
-You didn't configure an AI agent. You didn't write orchestration code. You didn't build a prompt chain.
+## if something breaks
 
-You shaped a directory structure, and the AI operated within it — shifting roles at each level, enforcing quality at each gate, tracking state in plain YAML files.
+- **gate fails** — read the output. it tells you exactly what check failed and what's missing. fix it and run the gate again.
+- **AI seems confused** — make sure you're in the right directory. Claude Code reads `CLAUDE.md` from the current context. wrong folder = wrong instructions.
+- **"command not found"** — make sure you have bash available. on Windows, Git Bash works. WSL works. the gates are shell scripts.
+- **want to start over** — delete the work unit directory and create a new one with `/acu-start`. pipelines are reusable, work units are disposable.
 
-The directory IS the program. The AI IS the runtime.
+## want to dig deeper
 
-## Next steps
+- [README.md](README.md) — technical architecture, evaluation hierarchy, parallel execution
+- [THREAT-MODEL.md](THREAT-MODEL.md) — security posture and attack surfaces
+- break something on purpose. edit a gate to be stricter. change a `CLAUDE.md` constraint. see how the AI's behavior changes. the best way to understand the system is to push it.
 
-- **Try `/acu-check`** — scans your pipeline for structural compliance.
-- **Try `/acu-observe`** — get a framework-wide health snapshot.
-- **Break something** — edit a gate to be stricter. Change a CLAUDE.md constraint. See how the AI's behavior changes. The best way to understand the system is to push its boundaries.
+if you have questions or feedback hit me up at delted@delted.dev. all feedback is welcome, especially the "this doesn't work" kind.
