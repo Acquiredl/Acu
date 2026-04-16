@@ -98,6 +98,15 @@ optional Langfuse integration for trace emission. every gate transition, evaluat
 | framework observation (`/acu-observe`) | stable |
 | template versioning + update (`/acu-update`) | stable |
 
+## planned
+
+things i'm working toward or actively exploring. no timelines, no promises — just the direction.
+
+- **expanded gate testing** — more structural checks across archetypes, edge-case coverage for gate scripts, and validation that gate contracts hold across pipeline variants. the gate system works but the test surface is thin.
+- **richer agent parameters** — more knobs per worker and stage: configurable system prompts, temperature, token limits, tool access controls. the parallel system already supports model and persona diversity but there's room to expose more of the model's own configuration as stage-level frontmatter.
+- **RAG integration** — bringing actual retrieval (vector search, embeddings) into the pipeline. right now Acu uses filesystem-as-retrieval where CLAUDE.md scoping controls what context the agent sees. the question is whether vector retrieval can layer on top of that without breaking the filesystem-first principle — probably as an optional stage-level capability, not a framework dependency.
+- **unified naming convention** — the current vocabulary (Acu, Sauron, pipelines, workers, units, gates) is a patchwork of metaphors with no common thread. makes onboarding harder than it needs to be. looking at a cohesive naming scheme where the terms reinforce each other so new users can intuit the hierarchy instead of memorizing it.
+
 ## what it doesn't do
 
 - no Python SDK, no npm package, no API. it's directories and bash scripts.
