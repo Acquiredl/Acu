@@ -21,7 +21,7 @@ think of it like setting up an office. you create departments (pipelines), each 
    - **Claude Desktop app** — download from [claude.ai/download](https://claude.ai/download). works on Mac and Windows.
    - **CLI** — if you're comfortable with terminals: `npm install -g @anthropic-ai/claude-code`
 
-3. **An Anthropic API key** — Claude Code needs this to talk to the AI. get one at [console.anthropic.com](https://console.anthropic.com). it's pay-per-use, a typical pipeline run costs a few dollars depending on the model and how much work is involved.
+3. **An Anthropic API key** — Claude Code needs this to talk to the AI. get one at [console.anthropic.com](https://console.anthropic.com). it's pay-per-use, a typical pipeline run costs a few cents depending on the model and how much work is involved.
 
 ## step 1: clone the repo
 
