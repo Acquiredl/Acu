@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# acu-template: advance.sh — version 2026.04.15.3
+# acu-template: advance.sh — version 2026.04.17.5
 # advance.sh — Run a stage gate and update status.yaml on pass.
 #
 # Wraps the gate scripts so that a successful gate check automatically
@@ -176,15 +176,15 @@ update_stage_field() {
 
 # Update initiative-level current_stage
 if [[ -n "$NEXT_STAGE" ]]; then
-    sed -i "s/current_stage:.*/current_stage: \"$NEXT_STAGE\"/" "$STATUS_FILE"
+    sed -i "s/^  current_stage:.*/  current_stage: \"$NEXT_STAGE\"/" "$STATUS_FILE"
     vlog "  current_stage -> $NEXT_STAGE"
 else
-    sed -i 's/status: "active"/status: "complete"/' "$STATUS_FILE"
+    sed -i 's/^  status: "active"/  status: "complete"/' "$STATUS_FILE"
     vlog "  initiative status -> complete"
 fi
 
 # Update timestamp
-sed -i "s/updated:.*/updated: \"$TIMESTAMP\"/" "$STATUS_FILE"
+sed -i "s/^  updated:.*/  updated: \"$TIMESTAMP\"/" "$STATUS_FILE"
 
 # Mark completed stage
 update_stage_field "$COMPLETED_STAGE" "status" "complete" "$STATUS_FILE"
