@@ -8,6 +8,54 @@ pipelines up to the current template standard without touching domain-specific c
 
 ---
 
+## 2026.04.17.5 — advance.sh sed anchor fix (audit-trail integrity)
+
+Source: Roadmap initiative `advance-sh-sed-anchor` (see `_roadmap/initiatives/advance-sh-sed-anchor/plan.md`). Handoff from the preceding session — bug observed twice during `frontmatter-slim-down` and `orchestrator-and-office-anchor` implementation, hand-healed both times, queued for proper fix with regression evidence.
+
+### What changed
+
+**Bug.** `advance.sh` updated three top-level `status.yaml` fields with unanchored `sed -i "s/KEY:.*/KEY: value/"`. Because the regex has no `^`, it matches `KEY:` **anywhere on any line**, not just at column 0. When an item's `evidence:` prose contained the substring `updated:` (or `current_stage:`, or `status: "active"`), the gate silently replaced everything from the mid-line match to end-of-line with the new value, destroying the evidence text after the key.
+
+Observed corruption events (both fixed by hand in-session before push):
+- `frontmatter-slim-down` / `consumer-audit` item — `evidence:` contained `"...acu-eval/SKILL.md (stage tier step 6 updated: no WARN when feature off)..."`. Implement-to-validate gate truncated it at `updated:` and replaced the remainder with the timestamp.
+- `orchestrator-and-office-anchor` / `prose-and-skill-rename` item — `evidence:` contained `"Framework files updated: acu-eval/SKILL.md..."`. Validate-complete gate corrupted it identically.
+
+**Fix.** Anchor every in-place sed rewrite to `^  ` (start-of-line + two spaces). Top-level `status.yaml` fields live under `initiative:` at 2-space indent; item-level fields (`evidence:`, `name:`, etc.) are at 4-space indent under their items. `^  KEY:` matches the top-level block only; mid-line occurrences inside deeper-indented prose cannot match.
+
+Note: the initial handoff proposed a bare `^KEY:` anchor, which would have been a silent no-op — top-level fields are not at column 0. The regression harness (below) caught this mid-implementation before the broken fix shipped.
+
+**Files updated (framework-level):**
+- `_roadmap/gates/advance.sh` — 3 sed lines anchored (lines 179, 182, 187: `current_stage`, `status: "active"`, `updated`). Per-file stamp bumped 2026.04.15.3 → 2026.04.17.5.
+- `_templates/advance.sh.template` — 3 sed lines anchored (lines 333, 336, 341: same three keys). Per-file stamp bumped 2026.04.17.2 → 2026.04.17.5.
+
+**Not touched (pipeline copies — opt-in via `/acu-update`):**
+- `pipelines/SboxDevKit/gates/advance.sh` (lines 353, 356, 361 carry the same bug).
+- `pipelines/CareerLaunch/gates/advance.sh` (lines 338, 341, 346 carry the same bug).
+
+The `regenerate_from_template` patch below surfaces the fix to `/acu-update`. Pipelines that do not run `/acu-update` keep the bug until they opt in. Documented behavior, not a regression.
+
+### Design decisions
+
+- **Scope limited to `advance.sh`.** Other shell scripts in the framework were not swept for similar unanchored-sed bugs in this initiative. A future audit can take that on if the pattern recurs.
+- **No retroactive heal of corrupted status.yaml files.** Both known corruption events were repaired by hand in-session. No automated pass.
+- **Regression harness lives in the initiative directory, not under pipelines/.** This is a one-shot verification artifact; re-running it is as simple as executing the harness script from the initiative dir.
+- **Micro-initiative over inline commit.** One-character diff, but the audit-trail evidence (reproducible trap-string test that also proves the pre-fix pattern was actually broken) belongs in a `validate.md`, not a commit message.
+
+### Patches
+
+```yaml
+patches:
+  - id: anchor-sed-patterns-in-advance-sh-v1
+    description: "Anchor every in-place sed rewrite in advance.sh to ^ so indented evidence prose can no longer be clobbered"
+    applies_to: "gates/advance.sh"
+    type: regenerate_from_template
+    template: "advance.sh.template"
+    requires_meta: [stages, unit_lower, unit_upper, unit_name]
+    note: "Safe to regenerate — advance.sh has no user content, only templated placeholders and scripted logic. Users who regenerate pick up the fix; users who do not regenerate keep the corruption risk on transitions that write evidence fields containing literal 'updated:', 'current_stage:', or 'status: \"active\"' substrings. No forced migration."
+```
+
+---
+
 ## 2026.04.17.4 — Orchestrator Rename + Office-Metaphor Anchor (Low Learning Friction Rules 12 + 13)
 
 Source: Roadmap initiative `orchestrator-and-office-anchor` (bundling successor candidates #5 + #6 from `learning-friction-research`). Rule 12 (one name per thing; no proper-noun cultural references as primary) + Rule 13 (metaphors must carry a powerful idea). User-directed bundle: the rename and the anchor metaphor are tightly coupled — "Orchestrator" only lands cleanly inside the office-metaphor frame.
