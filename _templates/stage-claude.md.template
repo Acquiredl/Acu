@@ -14,29 +14,37 @@ entry_criteria:
 constraints:
 {{FRONTMATTER_CONSTRAINTS}}
 {{PARALLEL_STAGE_BLOCK}}{{FAN_OUT_BLOCK}}{{EVAL_STAGE_BLOCK}}---
-<!-- acu-template: stage-claude.md — version 2026.04.17.1 -->
+<!-- acu-template: stage-claude.md — version 2026.04.17.3 -->
+<!-- diataxis-primary: reference -->
 # {{STAGE_NAME}} Stage
 
 {{STAGE_DESCRIPTION}}
 
+> **Mixed-mode doc** — primary quadrant: **Reference** (frontmatter, Objective, Approaches, Entry/Exit Gates). How-to sections: Methodology, Constraints, On Gate Failure. Each section below is tagged so you and the agent know which mode to apply.
+
+<!-- quadrant: reference -->
 ## Objective
 
 {{STAGE_OBJECTIVE}}
 
+<!-- quadrant: how-to -->
 ## Methodology ({{METHODOLOGY_REF}})
 
 {{METHODOLOGY_STEPS}}
 
+<!-- quadrant: reference -->
 ## Approaches
 
 | Approach | Purpose | Resources |
 |----------|---------|-----------|
 {{APPROACHES_TABLE}}
 
+<!-- quadrant: reference -->
 ## Entry Gate (from {{PREV_STAGE}})
 
 {{ENTRY_GATE_CRITERIA}}
 
+<!-- quadrant: reference -->
 ## Exit Gate (to {{NEXT_STAGE}})
 
 <!-- Convention: every criterion must be a testable statement.
@@ -45,6 +53,7 @@ constraints:
      Good: "The research document contains at least 3 cited sources per claim." -->
 {{EXIT_GATE_CRITERIA}}
 
+<!-- quadrant: how-to -->
 ## Constraints
 
 <!-- Convention: every constraint starts with a verb (Never, Always, Only, Do not).
@@ -52,6 +61,7 @@ constraints:
      Good: "Never store credentials in plaintext." -->
 {{STAGE_CONSTRAINTS}}
 
+<!-- quadrant: how-to -->
 ## On Gate Failure
 
 If a gate transition from this stage fails, a `.gate-feedback.md` file will be written in the work unit directory containing the specific failure reasons.

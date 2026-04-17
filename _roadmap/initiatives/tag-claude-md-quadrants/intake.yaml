@@ -1,0 +1,23 @@
+initiative:
+  id: "tag-claude-md-quadrants"
+  name: "Quadrant-Tag CLAUDE.md Files (Low Learning Friction Rule 6)"
+  description: "Apply Low Learning Friction Rule 6 via tagging (not splitting) to all generated CLAUDE.md files. Top-of-file callout declares the dominant Diátaxis quadrant and notes mixed-mode sections. Each H2 section gets an HTML-comment quadrant tag (reference / how-to / explanation). Keeps the single-file-per-context loading contract intact, adds a mode-switch cue for both human readers and the LLM agent. Optional acu-check warn for missing tags."
+  created: "2026-04-17"
+  engineer: "Stephane"
+
+source:
+  type: "sauron-proposal"
+  path: "_roadmap/initiatives/learning-friction-research/validate.md"
+  date: "2026-04-17"
+
+scope:
+  pillars: 1
+  items: 7
+  phases: 3
+  affects:
+    - templates
+    - skills
+    - methods
+
+rules:
+  scope: "CLAUDE.md template files + generator + check — no change to gate scripts, status.yaml, observability, or any runtime behavior. Tags are prose annotations only."

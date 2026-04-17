@@ -1,19 +1,27 @@
+<!-- acu-template: workspace-claude.md — version 2026.04.17.3 -->
+<!-- diataxis-primary: reference -->
 # [Workspace Name] — Acu Project
 
 [One sentence: what this workspace exists to do.]
 
+> **Mixed-mode doc** — primary quadrant: **Reference** (Task, Folder Structure, Routing Table, Output Format). Explanation sections: Identity, Context, Maintenance. How-to sections: Constraints. Each section below is tagged so you and the agent know which mode to apply.
+
+<!-- quadrant: explanation -->
 ## Identity
 
 [Who is Claude in this workspace? Define the role, tone, and perspective. This shapes every response.]
 
+<!-- quadrant: reference -->
 ## Task
 
 [What is the primary action this workspace performs? Use precise verbs. This is the default mission — what Claude should do when someone walks in without a specific request.]
 
+<!-- quadrant: explanation -->
 ## Context
 
 [What does Claude need to know to work effectively here? Background knowledge, domain assumptions, related workspaces, or source material that applies to everything in this workspace.]
 
+<!-- quadrant: reference -->
 ## Folder Structure
 
 - `/drafts` — Active work-in-progress.
@@ -23,6 +31,7 @@
 - `/archive` — Retired or superseded work.
 - `REFLECTIONS.md` — Lessons learned and mistakes to avoid repeating.
 
+<!-- quadrant: reference -->
 ## Routing Table
 
 | Task | Go To | Read |
@@ -33,10 +42,12 @@
 | Finalize output | `/final` | `drafts/CONTEXT.md` for the handoff process |
 | Review past decisions | `/archive` | `REFLECTIONS.md` |
 
+<!-- quadrant: how-to -->
 ## Constraints
 
 [What to avoid. Boundaries, limitations, negative constraints. Things that should never appear in output from this workspace.]
 
+<!-- quadrant: reference -->
 ## Output Format
 
 [What deliverables from this workspace look like. File types, structure, length, naming conventions. This tells Claude what "done" looks like.]
@@ -47,6 +58,7 @@
 - Status values: `exploring`, `refining`, `blocked`, `complete`
 - Handoff files in `/final`: `ProjectName_Handoff.md`
 
+<!-- quadrant: explanation -->
 ## Maintenance
 
 CONTEXT.md files and this CLAUDE.md are reviewed automatically. A scheduled task runs twice weekly, reads new session files across all workspaces, and logs suggested updates to `REVIEW-LOG.md`. No manual upkeep required — just review the suggestions when notified.

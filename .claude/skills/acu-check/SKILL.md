@@ -289,6 +289,18 @@ Read `eval_chain` from pipeline CLAUDE.md frontmatter. If it includes `"system"`
 
 ---
 
+#### Check 23: Quadrant tag presence (Low Learning Friction Rule 6)
+
+For each `CLAUDE.md` under the pipeline (pipeline root + every `{N}-{Name}/` stage directory), scan for H2 sections (lines starting with `## `) and verify each has a preceding `<!-- quadrant: (reference|how-to|explanation|tutorial) -->` comment on the line immediately above (no blank line between).
+
+The top-of-file callout is also expected: a `<!-- diataxis-primary: ... -->` comment after the version stamp, plus the `> **Mixed-mode doc** ...` callout before the first H2.
+
+- All H2 sections in every CLAUDE.md tagged, top-of-file callout present → `[PASS] quadrant tags present`
+- Any H2 missing a tag, or top-of-file callout missing → `[WARN] N H2 section(s) missing quadrant tag across M file(s)`
+- **Never `[FAIL]`** — existing pipelines generated before 2026.04.17.3 pre-date this convention. Warn-only is deliberate.
+
+---
+
 ### Step 3: OUTPUT — Structured report
 
 Format:
@@ -317,6 +329,7 @@ Pipeline: {Name}
   gate-criteria:    [{PASS|WARN|SKIP}] {detail}
   eval-criteria:    [{PASS|FAIL|SKIP}] {detail}
   eval-gate.md:     [{PASS|WARN|SKIP}] {detail}
+  quadrant tags:    [{PASS|WARN}] {detail}
   advance-eval:     [{PASS|FAIL|SKIP}] {detail}
   observability:    [{PASS|FAIL|WARN|SKIP}] {detail}
   trace-emission:   [{PASS|FAIL|SKIP}] {detail}

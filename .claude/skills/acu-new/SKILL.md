@@ -300,6 +300,23 @@ Per Low Learning Friction Rule 2, a frontmatter field is only present when the f
 
 ---
 
+**Phase 0.8 — Quadrant Tag Emission (Low Learning Friction Rule 6):**
+
+Per Rule 6, every generated `CLAUDE.md` file carries a top-of-file callout declaring the dominant Diátaxis quadrant plus per-H2 HTML-comment tags. The templates (`pipeline-claude.md.template`, `stage-claude.md.template`, `workspace-claude.md.template`) already contain the tags in their prose — the generator's job is to preserve them verbatim during template fill.
+
+**What to preserve during template fill:**
+1. The `<!-- diataxis-primary: ... -->` comment immediately after the per-file version stamp.
+2. The `> **Mixed-mode doc** ... ` callout block before the first H2.
+3. The `<!-- quadrant: reference|how-to|explanation -->` comment immediately preceding each H2. No blank line between comment and H2.
+
+**Tag values:** `reference`, `how-to`, `explanation`. (`tutorial` reserved for future Initiative #4 scope.)
+
+**Classification is canonical** — see `_roadmap/initiatives/tag-claude-md-quadrants/quadrant-classification.md` for the authoritative per-section table. Do not re-derive; copy from the classification.
+
+**Generator does NOT add tags to domain-specific sections** introduced beyond the template (e.g., Graveyard warnings, archetype-specific expansions). If a custom section is added, the generator should tag it at emission time using the compass test (action/cognition × acquisition/application). Default for unclassified: tag-it-reference and let the human reviewer correct if wrong.
+
+---
+
 **Phase 1 — Structure:**
 1. Create `pipelines/{Name}/` directory tree
 2. Create stage directories using `{N}-{Name}/` naming (see Rule A)
@@ -410,6 +427,7 @@ After building, verify:
 - [ ] Frontmatter `gate_criteria` in each stage correspond to the `## Exit Gate` prose section
 - [ ] No `{{` placeholder strings in frontmatter sections
 - [ ] Progressive frontmatter: off-by-default fields are ABSENT from generated frontmatter (Phase 0.7). Do not emit `parallel_eligible: false`, `observability: false`, `gate_type: "inherit"`, `eval_model: "inherit"`, empty `eval_criteria`, empty `pipeline_eval_criteria`, or default `max_retries: 1`.
+- [ ] Quadrant tags (Phase 0.8): every generated CLAUDE.md contains `<!-- diataxis-primary: ... -->` after the version stamp, a top-of-file `> **Mixed-mode doc** ...` callout, and a `<!-- quadrant: reference|how-to|explanation -->` tag immediately preceding every H2 section.
 - [ ] If gate_type is semantic/composite: `eval_criteria` is non-empty and present for relevant stages (Rule K)
 - [ ] If gate_type is semantic/composite: `eval-gate.md` exists in relevant stage directories (Rule K)
 - [ ] `max_retries` is present only when overriding the default (`1`); if present, is a non-negative integer
