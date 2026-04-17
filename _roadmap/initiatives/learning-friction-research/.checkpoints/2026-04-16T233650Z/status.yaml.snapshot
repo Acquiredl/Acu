@@ -1,0 +1,66 @@
+initiative:
+  id: "learning-friction-research"
+  name: "Learning Friction Research"
+  status: "active"
+  current_stage: "implement"
+  current_phase: ""
+  created: "2026-04-16"
+  updated: "2026-04-16T23:36:50Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-16"
+    completed: "2026-04-16T23:36:50Z"
+  implement:
+    status: "in_progress"
+    entered: "2026-04-16T23:36:50Z"
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+items:
+  diataxis-audit:
+    name: "Classify every Acu doc artifact against Diátaxis (tutorial / how-to / reference / explanation); identify gaps and mislabeled docs"
+    pillar: "learning-friction-methodology"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  cognitive-load-inventory:
+    name: "Map Acu's templates and skill surfaces to intrinsic / extraneous / germane load categories; identify extraneous load that can be removed without affecting capability"
+    pillar: "learning-friction-methodology"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  nomenclature-audit:
+    name: "Evaluate every user-facing name in Acu (Sauron, Acu, gate, pipeline, stage, unit, etc.) against a beginner's mental model; classify as load-bearing metaphor, decorative metaphor, or cultural tax"
+    pillar: "learning-friction-methodology"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  progressive-disclosure-review:
+    name: "Identify the minimum viable surface area for a first-time Acu user; list everything a new user must currently learn before producing their first working pipeline"
+    pillar: "learning-friction-methodology"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  synthesis-to-methods-doc:
+    name: "Synthesize findings from all four research items into validated design rules; produce the replacement for _templates/methods/low-learning-friction.md (stub -> validated)"
+    pillar: "learning-friction-methodology"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+
+notes: "Source: my own recommendation during the template-gaps-sboxdevkit session (2026-04-16). The stub methods doc explicitly names this initiative as its successor. Research outputs feed both Initiative #2 (ranking/selection gates) and Initiative #3 (Sauron split) — those initiatives should use the validated methods doc as a design lens."

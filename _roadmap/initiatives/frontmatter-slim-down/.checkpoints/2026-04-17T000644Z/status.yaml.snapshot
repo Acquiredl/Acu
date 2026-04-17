@@ -1,0 +1,74 @@
+initiative:
+  id: "frontmatter-slim-down"
+  name: "Progressive Frontmatter — Off-By-Default Fields Absent from Templates"
+  status: "active"
+  current_stage: "implement"
+  current_phase: ""
+  created: "2026-04-17"
+  updated: "2026-04-17T00:06:44Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-17T00:03:38Z"
+    completed: "2026-04-17T00:06:44Z"
+  implement:
+    status: "in_progress"
+    entered: "2026-04-17T00:06:44Z"
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+items:
+  field-audit:
+    name: "Audit every frontmatter field in pipeline-claude.md.template and stage-claude.md.template; classify each as always-present / feature-gated / deprecated; document the feature each gated field attaches to"
+    pillar: "low-learning-friction-rule-2"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  template-refactor:
+    name: "Introduce conditional frontmatter blocks (following existing {{FAN_OUT_BLOCK}} precedent) for each feature-gated field; update pipeline-claude.md.template and stage-claude.md.template; preserve {{FAN_OUT_BLOCK}} pattern"
+    pillar: "low-learning-friction-rule-2"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  generator-update:
+    name: "Update acu-new skill to emit only active fields based on user-answered feature flags during intake; document the flag-to-field mapping so future field additions follow the pattern"
+    pillar: "low-learning-friction-rule-2"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  consumer-audit:
+    name: "Audit every consumer of frontmatter (gate scripts, advance.sh, pipeline-status.sh, yq calls in bash scripts) for tolerance to missing fields; add default-on-missing handling where needed"
+    pillar: "low-learning-friction-rule-2"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  migration-patch:
+    name: "Bump _templates/VERSION; write CHANGELOG.md entry per requires_meta convention; ensure /acu-update path can remove absent-now-default fields from existing pipelines without data loss"
+    pillar: "low-learning-friction-rule-2"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  validation-pass:
+    name: "Regenerate a sample pipeline end-to-end via acu-new; run acu-check on existing pipelines; verify gate scripts still pass on both slimmed and pre-slim pipelines"
+    pillar: "low-learning-friction-rule-2"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+
+notes: "Source: successor initiative to learning-friction-research. Applies Rule 2 (progressive frontmatter) from _templates/methods/low-learning-friction.md. Rule 10 (gate stdout trim) is a separate successor initiative, handled next — user explicit: one at a time."
