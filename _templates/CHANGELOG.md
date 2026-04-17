@@ -8,6 +8,90 @@ pipelines up to the current template standard without touching domain-specific c
 
 ---
 
+## 2026.04.17.4 — Orchestrator Rename + Office-Metaphor Anchor (Low Learning Friction Rules 12 + 13)
+
+Source: Roadmap initiative `orchestrator-and-office-anchor` (bundling successor candidates #5 + #6 from `learning-friction-research`). Rule 12 (one name per thing; no proper-noun cultural references as primary) + Rule 13 (metaphors must carry a powerful idea). User-directed bundle: the rename and the anchor metaphor are tightly coupled — "Orchestrator" only lands cleanly inside the office-metaphor frame.
+
+### What changed
+
+**Subsystem rename: `Sauron/` → `Orchestrator/`** — directory renamed via `git mv`. Two files inside (`CLAUDE.md`, `eval-system.md`) stay in place with self-references and prose rewritten. Every path reference throughout the framework updated: `ROUTES.yaml`, root `CLAUDE.md`, skill SKILL.md files, methods docs.
+
+**Vocabulary cleanup:**
+- `Sauron` → `Orchestrator` (subsystem actor). "Orchestrator" is industry-standard in agent-framework contexts (LangChain, AutoGen, CrewAI); predicts the mechanic in one word (Rule 11).
+- `Uniboss` → deleted. Was a prose-only alias; the concept is now "system-tier evaluator run by the Orchestrator."
+- `Teacher` (eval role) → `stage evaluator`. Prose only; the code boundary (`stage` tier + `eval_criteria` field) was already one-name-per-thing.
+- `Faculty Head` (eval role) → `pipeline evaluator`. Same structure.
+- Aspirational university / faculty / classroom / student prose cluster → deleted.
+
+**Eval-tier fields at the code boundary (`system_eval_criteria`, `pipeline_eval_criteria`, stage `eval_criteria`, `eval_chain: ["stage", "pipeline", "system"]`) are UNCHANGED.** They were already one-name-per-thing. The rename only touches actor / subsystem naming and its prose surroundings.
+
+**Root `CLAUDE.md` anchor metaphor adoption** — a new `## Anchor Metaphor` section lands after the framework intro and before `## Architectural Principles`. 145 words. Declares the office metaphor and maps every mechanical name to its office-role equivalent:
+- Acu = the office
+- Pipeline = a department
+- Pipeline CLAUDE.md = the department charter
+- Stage = a desk inside the department
+- Gate = an inspection / sign-off between desks
+- Work unit = a project moving between desks
+- Deliverable = the project's report
+- Orchestrator = Operations (cross-department coordinator)
+
+**Files updated (framework-level only):**
+- `Orchestrator/CLAUDE.md`, `Orchestrator/eval-system.md` (renamed + rewritten)
+- `ROUTES.yaml` (subsystem entry renamed)
+- `CLAUDE.md` (root — rename + anchor metaphor section added)
+- `README.md` (architecture diagram + evaluation hierarchy)
+- `THREAT-MODEL.md` (mitigations + trust boundary diagram)
+- `_roadmap/CLAUDE.md`, `_roadmap/ROADMAP.md`, `_roadmap/1-Plan/CLAUDE.md`, `_roadmap/2-Implement/CLAUDE.md`
+- `.claude/skills/acu-eval/SKILL.md` (major: Identity, tier table, all tier-prompt defaults)
+- `.claude/skills/acu-check/SKILL.md` (Check 22)
+- `.claude/skills/acu-new/SKILL.md` (Input 8 eval-chain description)
+- `_templates/PLACEHOLDERS.md` (three prose mentions)
+- `_templates/eval-gate.md.template` (stamp 2026.04.15.2 → 2026.04.17.4; prose rewrite)
+- `_templates/eval-pipeline.md.template` (stamp 2026.04.15.5 → 2026.04.17.4; prose rewrite)
+- `_templates/methods/agent-engineering.md` (5 prose mentions)
+- `_roadmap/initiatives/named-subagents/plan.md` (pre-implementation note added + `sauron-eval` → `orchestrator-eval`)
+
+**Files explicitly NOT touched** (historical / research / user content):
+- `_templates/CHANGELOG.md` pre-2026-04-17 entries (describe past state)
+- `_roadmap/initiatives/learning-friction-research/**` (the research that named the problem)
+- `Research/reports/**`, `Research/sources/**` (frozen research)
+- `*/.checkpoints/**` (snapshot artifacts)
+- `pipelines/SboxDevKit/*/eval-gate.md` (live pipeline generated content — scope boundary)
+- `pipelines/CareerLaunch/campaigns/**/*.md` (user-authored deliverable content)
+
+### Design decisions
+
+- **"Acu" framework name NOT renamed.** Explicit user judgment call: rename cost (every file, every `/acu-*` skill, every directory path) outweighs learner-friction savings for a framework whose primary user has already learned the name. Candidate logged in `learning-friction-research/validate.md`; declined here.
+- **Bundled initiative deviates from sequential default.** `feedback_initiative-sequencing.md` says one-at-a-time; the user explicitly directed bundling because the rename and the anchor metaphor are deeply coupled — doing them in separate initiatives would leave an incoherent interim state (new name with weak metaphor, or new metaphor with old name).
+- **HTML comments from Rule 6 tag initiative are NOT added to Orchestrator/CLAUDE.md in this initiative.** Per `tag-claude-md-quadrants` scope boundary, existing live CLAUDE.md files are not force-migrated. Adding tags to Orchestrator/CLAUDE.md would be a separate cleanup pass.
+- **QUICKSTART office passage kept as-is.** It still works as a lightweight first-read intro. Root `CLAUDE.md` is now the canonical anchor; QUICKSTART reinforces it without duplication.
+- **Zero code-boundary changes.** Gate scripts, status.yaml schema, observability emission paths, Langfuse wiring, audit log format — all unchanged. Only prose + filesystem names changed.
+
+### Patches
+
+```yaml
+patches:
+  - id: rename-sauron-directory-v1
+    description: "Subsystem directory renamed: Sauron/ -> Orchestrator/"
+    applies_to: "Sauron/"
+    type: informational
+    note: "Framework-level rename only. No generated pipeline references Sauron/ paths. Users pulling the repo see the git mv; no /acu-update action required."
+
+  - id: eval-tier-prose-cleanup-v1
+    description: "Prose references to Teacher / Faculty Head / Uniboss removed from current-state files"
+    applies_to: "framework prose"
+    type: informational
+    note: "Live generated pipelines may still contain 'Teacher' / 'Faculty Head' in their eval-gate.md files (generated from older template versions). These are NOT force-migrated. Users can regenerate via /acu-update if desired; existing files continue to work."
+
+  - id: office-anchor-rootmd-v1
+    description: "Anchor metaphor section added to root CLAUDE.md (Rule 13)"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "New first-read anchor at the root. 145 words. Does not affect any runtime behavior."
+```
+
+---
+
 ## 2026.04.17.3 — Quadrant-Tag CLAUDE.md Files (Low Learning Friction Rule 6)
 
 Source: Roadmap initiative `tag-claude-md-quadrants` (see `_roadmap/initiatives/tag-claude-md-quadrants/plan.md`). Third successor initiative to `learning-friction-research`. Applies Rule 6 (one artifact, one Diátaxis quadrant — or label sections) via tagging, explicitly NOT splitting.

@@ -91,7 +91,7 @@ If the user provided a detailed spec or handoff, extract these from it. Otherwis
 8. **Semantic evaluation** (optional)
    - Does this pipeline need LLM-based quality evaluation beyond structural checks? (yes/no, default: no)
    - If yes: which stages should have semantic evaluation? (default: the stage before final + the final stage)
-   - Evaluation chain: stage only, stage + pipeline (faculty head), or stage + pipeline + system (Sauron)? (default: stage only)
+   - Evaluation chain: stage only, stage + pipeline, or stage + pipeline + system (system tier is run by the Orchestrator)? (default: stage only)
    - If pipeline tier included: what pipeline-level criteria should be evaluated? (coherence across stages, strategic fit, completeness)
    - This sets the pipeline-level `gate_type`, `eval_chain`, `pipeline_eval_criteria`, and determines which stages get `eval_criteria` and `eval-gate.md`
 

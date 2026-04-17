@@ -280,11 +280,11 @@ Read `eval_chain` from pipeline CLAUDE.md frontmatter. If it includes `"pipeline
 #### Check 22: System eval configuration
 
 Read `eval_chain` from pipeline CLAUDE.md frontmatter. If it includes `"system"`:
-- Verify `Sauron/CLAUDE.md` has frontmatter with `system_eval_criteria` (non-empty)
-- Verify `Sauron/eval-system.md` exists
-- `[PASS] system eval configured (Sauron criteria + eval-system.md)`
-- `[FAIL] Sauron/CLAUDE.md missing system_eval_criteria`
-- `[WARN] Sauron/eval-system.md missing (default prompt will be used)`
+- Verify `Orchestrator/CLAUDE.md` has frontmatter with `system_eval_criteria` (non-empty)
+- Verify `Orchestrator/eval-system.md` exists
+- `[PASS] system eval configured (Orchestrator criteria + eval-system.md)`
+- `[FAIL] Orchestrator/CLAUDE.md missing system_eval_criteria`
+- `[WARN] Orchestrator/eval-system.md missing (default prompt will be used)`
 - `[SKIP]` if eval_chain does not include `"system"`
 
 ---

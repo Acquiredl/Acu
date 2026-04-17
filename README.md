@@ -48,13 +48,13 @@ on top of structural gates there's an optional semantic evaluation layer where a
 ## architecture
 
 ```
-Sauron (dispatcher)
+Orchestrator (dispatcher)
   ├── Pipeline A (stages → gates → work units)
   ├── Pipeline B (stages → gates → work units)
   └── Pipeline C (stages → gates → work units)
 ```
 
-- **Sauron** — the only component with cross-pipeline visibility. routes requests to the right pipeline, reviews output, pushes improvements back into templates.
+- **Orchestrator** — the only component with cross-pipeline visibility. routes requests to the right pipeline, reviews output, pushes improvements back into templates.
 - **Pipelines** — isolated, self-contained projects. each with their own stages, gates, context, and constraints. no pipeline can reach into another.
 - **Gates** — deterministic quality checks at every stage transition. `[PASS]` / `[FAIL]` / `[WARN]`. no negotiation.
 - **Templates** — versioned blueprints that replicate into new pipelines. generate once, maintain consistency.
@@ -64,9 +64,9 @@ Sauron (dispatcher)
 
 three tiers of quality evaluation, each optional:
 
-1. **Stage (teacher)** — evaluates individual stage output against criteria. scores, retries on failure, eliminates repeat failures.
-2. **Pipeline (faculty head)** — evaluates coherence across stages. does the work hold together as a whole?
-3. **System (Sauron)** — cross-pipeline pattern detection. which approaches produce the best results?
+1. **Stage** — evaluates individual stage output against criteria. scores, retries on failure, eliminates repeat failures.
+2. **Pipeline** — evaluates coherence across stages. does the work hold together as a whole?
+3. **System** (run by the Orchestrator) — cross-pipeline pattern detection. which approaches produce the best results?
 
 ### parallel execution
 

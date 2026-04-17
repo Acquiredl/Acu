@@ -29,7 +29,7 @@ No network services are exposed. No multi-user access. No remote execution.
 
 **Existing mitigations:**
 - Git version control — all CLAUDE.md changes are tracked, diffable, reversible
-- Sauron review cycle — scheduled reviews read CLAUDE.md files and flag anomalies
+- Orchestrator review cycle — scheduled reviews read CLAUDE.md files and flag anomalies
 - Pipeline isolation — a poisoned pipeline CLAUDE.md cannot affect other pipelines
 
 **Missing mitigations:**
@@ -110,7 +110,7 @@ No network services are exposed. No multi-user access. No remote execution.
 **Impact:** High. Templates are DNA — they replicate into every new pipeline.
 
 **Existing mitigations:**
-- Only Sauron modifies templates (documented constraint)
+- Only the Orchestrator modifies templates (documented constraint)
 - Template versioning with CHANGELOG.md records what changed and why
 - Git history tracks every template modification
 - `/acu-check` can verify pipeline structures against current templates
@@ -149,7 +149,7 @@ No network services are exposed. No multi-user access. No remote execution.
 |  User (trusted)                                   |
 |    |                                              |
 |    v                                              |
-|  Sauron (dispatcher) ----> Pipeline CLAUDE.md     |
+|  Orchestrator (dispatcher) -> Pipeline CLAUDE.md  |
 |    |                        (trust boundary)      |
 |    v                                              |
 |  Gate Scripts (Layer 0) -- deterministic checks   |

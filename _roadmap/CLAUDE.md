@@ -25,7 +25,7 @@ Three-stage pipeline for tracking framework-level initiatives from handoff accep
 
 ## Task
 
-Route initiative work to the correct stage, enforce gates before stage transitions, and track per-item progress. Every item traces to observed data or validated principles. Initiatives arrive from Brainstorming handoffs or Sauron review proposals.
+Route initiative work to the correct stage, enforce gates before stage transitions, and track per-item progress. Every item traces to observed data or validated principles. Initiatives arrive from Brainstorming handoffs or Orchestrator review proposals.
 
 ## Context
 
@@ -63,7 +63,7 @@ Route initiative work to the correct stage, enforce gates before stage transitio
 
 ## Constraints
 
-- Every initiative must trace to a brainstorming handoff or Sauron review proposal — no speculative work
+- Every initiative must trace to a brainstorming handoff or Orchestrator review proposal — no speculative work
 - Items cannot be marked done without evidence (commit SHA, file path, or test result)
 - Deferred items require a logged reason — silent omission is not acceptable
 - No forced migration to existing pipelines — changes adopt through the review cycle or `/acu-update`

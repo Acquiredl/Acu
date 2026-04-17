@@ -1,0 +1,24 @@
+initiative:
+  id: "orchestrator-and-office-anchor"
+  name: "Orchestrator Rename + Office-Metaphor Anchor (Low Learning Friction Rules 12 + 13)"
+  description: "Combined successor initiative bundling candidate #5 (university-metaphor deduplication) and candidate #6 (QUICKSTART office-metaphor promotion) from learning-friction-research. Rename Sauron -> Orchestrator (subsystem actor); kill Teacher/Faculty Head/Uniboss prose vocabulary; promote the office metaphor (already Papert-grade per nomenclature research) to root CLAUDE.md as the framework's anchor. User-directed bundle: the two changes are coupled because 'Orchestrator' reads naturally only inside the office-metaphor frame."
+  created: "2026-04-17"
+  engineer: "Stephane"
+
+source:
+  type: "sauron-proposal"
+  path: "_roadmap/initiatives/learning-friction-research/validate.md"
+  date: "2026-04-17"
+
+scope:
+  pillars: 2
+  items: 7
+  phases: 3
+  affects:
+    - skills
+    - templates
+    - methods
+    - roadmap
+
+rules:
+  scope: "prose / filesystem rename + documentation anchor. No gate logic changes, no status.yaml schema changes, no observability path changes. Eval-tier field names (system_eval_criteria, etc.) are already one-name-per-thing at the code boundary and stay as-is - the rename only touches actor/subsystem naming and prose."
