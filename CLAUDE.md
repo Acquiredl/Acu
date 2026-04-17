@@ -4,11 +4,19 @@ A framework for building LLM-driven pipelines where the filesystem defines the p
 
 Because LLMs are probabilistic, Acu treats quality gates as a first-class concern: every stage transition must pass a deterministic check before work advances. This is what makes the output reliable despite the executor being non-deterministic.
 
+## Anchor Metaphor
+
+Acu is an office. Each **pipeline** is a department with its own charter (its `CLAUDE.md`). Each **stage** is a desk inside the department. Between desks there is an **inspection point** — a quality **gate** — that signs off on work before it advances. A **work unit** is a project moving from desk to desk through the department. The department's final **deliverable** is the project's report.
+
+The **Orchestrator** is Operations — the only role with cross-department visibility. It routes work, reviews outputs against standards, and surfaces framework-level improvements back into how departments run. Departments stay isolated from each other; Operations is the one seam.
+
+This is the mental model. The rest of this document — the mechanical names (pipeline, stage, gate, unit, deliverable, Orchestrator) and the structural rules — are how the office runs in practice.
+
 ## Architectural Principles
 
 Acu's architecture is organized around isolation, gates, and structure:
 
-- **Isolation** — Each pipeline runs independently with its own stages, gates, and context. No pipeline can reach into another. Sauron is the only component with cross-pipeline visibility.
+- **Isolation** — Each pipeline runs independently with its own stages, gates, and context. No pipeline can reach into another. The Orchestrator is the only component with cross-pipeline visibility.
 - **Deterministic gates** — Every stage transition requires a binary pass/fail check (file existence, word counts, section headers, cross-references). Nothing advances without passing its gate.
 - **Structure as schema** — Templates enforce directory layout and file requirements. CLAUDE.md files scope what context gets loaded. Validation is structural, not semantic.
 - **Audit trail** — Every transition is logged with session ID and SHA256. `syslog.sh` aggregates across pipelines.
@@ -21,7 +29,7 @@ For the full design rationale mapped against agent engineering standards, see `_
 
 | Subsystem | Location | Role |
 |-----------|----------|------|
-| **Sauron** | `Sauron/CLAUDE.md` | Scheduler and dispatcher. Routes work, reviews output, pushes improvements. The only component with cross-pipeline visibility. |
+| **Orchestrator** | `Orchestrator/CLAUDE.md` | Scheduler and dispatcher. Routes work, reviews output, pushes improvements. The only component with cross-pipeline visibility. |
 | **Gates** | `pipelines/*/gates/` | Quality checks. Binary pass/fail at every stage transition. |
 | **Templates** | `_templates/` | Blueprints that replicate into new pipelines. Versioned as a set. |
 | **Routes** | `ROUTES.yaml` | Dispatch table. Single source of truth for all routing decisions. |
@@ -43,7 +51,7 @@ Reserved for cross-pipeline and framework concerns. Not for project-specific wor
 ## Infrastructure
 
 - `/_roadmap` — Framework evolution tracker. Plan → Implement → Validate.
-- `/_templates` — Structural templates used by `/acu-new`. Only Sauron modifies these.
+- `/_templates` — Structural templates used by `/acu-new`. Only the Orchestrator modifies these.
 - `REVIEW-LOG.md` — Maintenance suggestions from the review-push cycle.
 - `syslog.sh` — Cross-pipeline audit log aggregation. Read-only, on-demand.
 - `QUICKSTART.md` — Onboarding guide for new users.

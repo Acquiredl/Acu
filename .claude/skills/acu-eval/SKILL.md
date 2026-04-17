@@ -2,8 +2,8 @@
 name: acu-eval
 description: >-
   Hierarchical gate evaluator. Runs structural checks via advance.sh, then LLM-based
-  quality evaluation across three tiers: stage (teacher), pipeline (faculty head), and
-  system (Sauron). Implements the Evaluator-Optimizer loop with configurable retries.
+  quality evaluation across three tiers: stage, pipeline, and system (run by the Orchestrator).
+  Implements the Evaluator-Optimizer loop with configurable retries.
   Supports automatic eval_chain or manual --tier selection. Logs all decisions to audit trail.
 user-invocable: true
 auto-trigger: false
@@ -15,7 +15,7 @@ trigger_keywords:
   - smart gate
   - pipeline eval
   - system eval
-  - sauron eval
+  - orchestrator eval
 version: 2.0.0
 effort: medium
 ---
@@ -24,7 +24,7 @@ effort: medium
 
 ## Identity
 
-You are the Gate Evaluation Orchestrator for the Acu framework. You run the full multi-tier gate flow: structural checks (bash) followed by up to three levels of LLM semantic evaluation — stage (teacher), pipeline (faculty head), and system (Sauron/uniboss). You implement the Evaluator-Optimizer pattern at each tier. You are rigorous, independent, and auditable.
+You are the Gate Evaluation runner for the Acu framework. You run the full multi-tier gate flow: structural checks (bash) followed by up to three levels of LLM semantic evaluation — stage, pipeline, and system (the system tier is run by the Orchestrator subsystem). You implement the Evaluator-Optimizer pattern at each tier. You are rigorous, independent, and auditable.
 
 ## Orientation
 
@@ -42,9 +42,9 @@ You are the Gate Evaluation Orchestrator for the Acu framework. You run the full
 
 | Tier | Evaluator | What it reads | What it asks | Criteria source |
 |------|-----------|---------------|--------------|-----------------|
-| `stage` | Teacher | Stage deliverable | "Is this output good enough?" | Stage `eval_criteria` |
-| `pipeline` | Faculty Head | ALL stage deliverables + intake | "Does this all fit together?" | Pipeline `pipeline_eval_criteria` |
-| `system` | Sauron (Uniboss) | Final deliverable + intake | "Does this solve the original problem?" | `Sauron/CLAUDE.md` `system_eval_criteria` |
+| `stage` | Stage evaluator | Stage deliverable | "Is this output good enough?" | Stage `eval_criteria` |
+| `pipeline` | Pipeline evaluator | ALL stage deliverables + intake | "Does this all fit together?" | Pipeline `pipeline_eval_criteria` |
+| `system` | System evaluator (run by the Orchestrator) | Final deliverable + intake | "Does this solve the original problem?" | `Orchestrator/CLAUDE.md` `system_eval_criteria` |
 
 ## Protocol
 
@@ -94,10 +94,10 @@ Interpret the exit code:
 7. Use pipeline `eval_model` (or session model)
 
 **For system tier:**
-4. Read `Sauron/CLAUDE.md` frontmatter: `system_eval_criteria`, `eval_model`
+4. Read `Orchestrator/CLAUDE.md` frontmatter: `system_eval_criteria`, `eval_model`
 5. Read the final stage deliverable (the pipeline's end product)
-6. Read `Sauron/eval-system.md` if it exists
-7. Use Sauron `eval_model` (defaults to `opus`)
+6. Read `Orchestrator/eval-system.md` if it exists
+7. Use the Orchestrator's `eval_model` (defaults to `opus`)
 
 ### Step 4: EVALUATE — Perform LLM semantic evaluation (tier-aware)
 
@@ -108,14 +108,14 @@ Spawn a **subagent** using the Agent tool with:
 
 **Stage tier prompt:**
 1. If `eval-gate.md` exists: use it as base, fill in deliverable content and criteria
-2. If not: use default stage evaluation prompt (Teacher role, stage deliverables, eval_criteria)
+2. If not: use default stage evaluation prompt (stage-evaluator role, stage deliverables, eval_criteria)
 
 **Pipeline tier prompt:**
 1. If `eval-pipeline.md` exists: use it as base, fill in all stage deliverables, intake, and pipeline_eval_criteria
 2. If not: use default pipeline evaluation prompt:
 
 ```
-You are the pipeline-level evaluator (Faculty Head). Assess whether all stage
+You are the pipeline-level evaluator. Assess whether all stage
 outputs together form a coherent, complete deliverable that meets the pipeline's
 purpose. You evaluate the whole, not the parts.
 
@@ -146,11 +146,11 @@ feedback: "One paragraph on inter-stage coherence and strategic fit."
 ```
 
 **System tier prompt:**
-1. If `Sauron/eval-system.md` exists: use it as base, inject system_eval_criteria and deliverable content
+1. If `Orchestrator/eval-system.md` exists: use it as base, inject system_eval_criteria and deliverable content
 2. If not: use default system evaluation prompt:
 
 ```
-You are the system-level evaluator (Uniboss). This is the final gate. Determine
+You are the system-level evaluator, run by the Orchestrator. This is the final gate. Determine
 whether the completed work actually addresses the original problem. Be strict.
 
 ## Original Request
@@ -163,7 +163,7 @@ whether the completed work actually addresses the original problem. Be strict.
 {pipeline description — what this pipeline is designed to produce}
 
 ## System Evaluation Criteria
-{numbered list of system_eval_criteria from Sauron/CLAUDE.md}
+{numbered list of system_eval_criteria from Orchestrator/CLAUDE.md}
 
 ## Instructions
 For each criterion, assess PASS, FAIL, or WARN. Focus on alignment between
@@ -268,7 +268,7 @@ If only some tiers ran (based on eval_chain), only show those tiers in the repor
 - Clean up feedback files on successful evaluation pass
 - Record the actual model used (not "inherit") in result files
 - Pipeline eval reads ALL stage deliverables — not just the current stage
-- System eval defaults to `opus` unless overridden in Sauron/CLAUDE.md
+- System eval defaults to `opus` unless overridden in Orchestrator/CLAUDE.md
 
 ## Quality Gates
 

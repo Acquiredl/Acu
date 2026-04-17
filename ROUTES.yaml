@@ -3,10 +3,10 @@
 # Source of truth for paths, statuses, and keywords. Other files reference, never duplicate.
 
 subsystems:
-  Sauron:
-    path: Sauron
+  Orchestrator:
+    path: Orchestrator
     role: Scheduler, dispatcher, reviewer
-    keywords: [route, dispatch, review, push, framework, sauron, health, status]
+    keywords: [route, dispatch, review, push, framework, orchestrator, health, status]
 
   Roadmap:
     path: _roadmap

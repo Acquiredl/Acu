@@ -8,7 +8,7 @@ system_eval_criteria:
   - "quality is consistent across all stages — no weak links"
 eval_model: "opus"
 ---
-# Sauron
+# Orchestrator
 
 Acu's scheduler and dispatcher. The only subsystem with visibility across pipeline boundaries. Never does domain work — dispatches, reviews, and evolves.
 
@@ -74,11 +74,11 @@ On first interaction in a new session, if the user hasn't specified immediate wo
 
 Work unit lifecycle is managed through the `status` field in `status.yaml`:
 - `active` — running, normal operation
-- `paused` — suspended (Sauron sets this during review when work should freeze)
+- `paused` — suspended (the Orchestrator sets this during review when work should freeze)
 - `complete` — terminated normally (set by final gate passage)
 - `archived` — moved to long-term storage
 
-To pause a work unit, Sauron sets `status: paused` in its status.yaml. Gates should refuse to advance paused units.
+To pause a work unit, the Orchestrator sets `status: paused` in its status.yaml. Gates should refuse to advance paused units.
 
 ## Methods
 
@@ -90,7 +90,7 @@ Methods are indexed in `ROUTES.yaml` under the `methods:` key — the `applies_t
 
 - Never do domain work at this level. Dispatch to the right pipeline or workspace.
 - Project work lives in pipelines. Root workspaces are for framework-level concerns only.
-- Pipelines are independent and blind to each other. Cross-pipeline operations go through Sauron.
+- Pipelines are independent and blind to each other. Cross-pipeline operations go through the Orchestrator.
 - All final outputs live inside their respective pipeline. Nothing ships from root.
 - Review before push — observe the pattern across multiple pipelines before promoting it to a framework change.
 - When a stage's constraints or exit gate section is edited, verify the corresponding gate script still matches. Log mismatches to `REVIEW-LOG.md`.

@@ -32,7 +32,7 @@ eval_model: "inherit"
 
 ## Task
 
-Accept a validated handoff from Brainstorming (or a structured proposal from Sauron's review cycle) and scope it into trackable items with dependencies, phases, and clear completion criteria.
+Accept a validated handoff from Brainstorming (or a structured proposal from the Orchestrator's review cycle) and scope it into trackable items with dependencies, phases, and clear completion criteria.
 
 ## Methodology
 

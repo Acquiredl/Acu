@@ -14,7 +14,7 @@ Production AI agents require seven disciplines working together. A weakness in a
 
 The agent is not a single thing — it's an orchestra. LLM making decisions, tools executing actions, databases storing state, sub-agents handling specialized tasks. Architecture determines how data flows, what happens when components fail, and how coordination works.
 
-**Acu implementation:** Kernel/scheduler/pipeline separation. ROUTES.yaml dispatch table. Pipelines isolated from each other. Sauron as the only cross-boundary actor. CLAUDE.md files define identity per-context. Templates replicate structure.
+**Acu implementation:** Kernel/scheduler/pipeline separation. ROUTES.yaml dispatch table. Pipelines isolated from each other. The Orchestrator is the only cross-boundary actor. CLAUDE.md files define identity per-context. Templates replicate structure.
 
 **Design test:** Can you trace a request from intake to shipped output through a single, documented path?
 
@@ -30,7 +30,7 @@ Every tool the agent uses has a contract: given these inputs, produce this outpu
 
 The quality of retrieved context determines the ceiling of agent performance. If you feed irrelevant context, the agent will confidently use irrelevant information. The model doesn't know the context is garbage.
 
-**Acu implementation:** Filesystem-as-retrieval. CLAUDE.md routing loads only the relevant context for the current scope. Stage directories scope work artifacts. Research stages enforce citation quality (2+ sources, traceable references). Sauron loads destination context only after routing — never before.
+**Acu implementation:** Filesystem-as-retrieval. CLAUDE.md routing loads only the relevant context for the current scope. Stage directories scope work artifacts. Research stages enforce citation quality (2+ sources, traceable references). the Orchestrator loads destination context only after routing — never before.
 
 **Design test:** For any given task, is the LLM seeing signal or noise? Can you identify exactly which files it reads and why?
 
@@ -84,7 +84,7 @@ From IBM/Anthropic's enterprise agent security guide. These principles apply reg
 ### System Controls
 
 - **Constrained** — Operate within explicit boundaries. (Acu: pipeline isolation, CLAUDE.md constraints, stage scoping)
-- **Permissioned** — Role-based access, principle of least privilege. (Acu: pipelines can't see each other, Sauron dispatches only, gates enforce transitions)
+- **Permissioned** — Role-based access, principle of least privilege. (Acu: pipelines can't see each other, the Orchestrator dispatches only, gates enforce transitions)
 - **Sandboxed** — Limit blast radius of failures. (Acu: work units are isolated, checkpoints enable rollback, idempotency markers prevent re-runs)
 
 ### Agent Development Lifecycle
@@ -125,7 +125,7 @@ From IBM Technology's technical debt framework. Every shortcut creates compoundi
 - *Acu defense:* CLAUDE.md files version-controlled in git. Schema validation on all structured inputs. Gate scripts enforce structural contracts.
 
 **Organizational debt** — No governance, no ownership, no policy.
-- *Acu defense:* Sauron review cycle (scheduled). REVIEW-LOG.md for tracked suggestions. Human approval required for framework changes. THREAT-MODEL.md defines security posture.
+- *Acu defense:* the Orchestrator's review cycle (scheduled). REVIEW-LOG.md for tracked suggestions. Human approval required for framework changes. THREAT-MODEL.md defines security posture.
 
 ### The Debt Equation
 
@@ -143,7 +143,7 @@ These principles are not a checklist to run at ship time. They are embedded in A
 
 | Principle | Where It Lives |
 |-----------|---------------|
-| System design | Root CLAUDE.md, ROUTES.yaml, Sauron/CLAUDE.md |
+| System design | Root CLAUDE.md, ROUTES.yaml, Orchestrator/CLAUDE.md |
 | Tool contracts | Schema files, gate exit criteria, stage CLAUDE.md |
 | Retrieval quality | Research stage gates, citation enforcement |
 | Reliability | advance.sh retry/timeout/degradation |

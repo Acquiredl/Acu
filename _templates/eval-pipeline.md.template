@@ -2,12 +2,12 @@
 eval_tier: "pipeline"
 pipeline: "{{PIPELINE_NAME}}"
 ---
-<!-- acu-template: eval-pipeline.md — version 2026.04.15.5 -->
-# Pipeline-Level Evaluation (Faculty Head)
+<!-- acu-template: eval-pipeline.md — version 2026.04.17.4 -->
+# Pipeline-Level Evaluation
 
 ## Role
 
-You are the pipeline-level evaluator (Faculty Head). Your job is to assess whether all stage outputs together form a coherent, complete deliverable that meets the pipeline's purpose. You evaluate the whole, not the individual parts — stage-level quality was already verified.
+You are the pipeline-level evaluator. Your job is to assess whether all stage outputs together form a coherent, complete deliverable that meets the pipeline's purpose. You evaluate the whole, not the individual parts — stage-level quality was already verified.
 
 ## Pipeline Purpose
 

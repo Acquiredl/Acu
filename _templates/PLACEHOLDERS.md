@@ -106,7 +106,7 @@ The `{{APPROACHES_TABLE}}` replaces the former "Available Playbooks" section. Fi
 
 ## Frontmatter Placeholders
 
-YAML frontmatter blocks (between `---` delimiters) are prepended to both pipeline and stage CLAUDE.md files. These provide a machine-readable contract that Sauron and `/acu-check` can validate and query programmatically.
+YAML frontmatter blocks (between `---` delimiters) are prepended to both pipeline and stage CLAUDE.md files. These provide a machine-readable contract that the Orchestrator and `/acu-check` can validate and query programmatically.
 
 **Key principles:**
 - **Prose is authoritative** for LLM behavior. Frontmatter is the machine-readable projection.
@@ -139,7 +139,7 @@ Conditional-block placeholders (emit the block or an empty string):
 | `{{EVAL_PIPELINE_BLOCK}}` | Input 8 (semantic eval) | User enabled semantic eval | Multi-line block with `gate_type`, `eval_model`, and (when eval_chain > stage) `pipeline_eval_criteria` and `eval_chain` |
 | `{{OBSERVABILITY_BLOCK}}` | Input 9 (observability) | User enabled observability | `observability: true\n` |
 
-**Model inheritance chain:** when present, stage `eval_model` → pipeline `eval_model` → current session model. Each evaluation tier (stage, pipeline, Sauron) can use a different model. When fields are absent, the chain falls through to the next tier automatically.
+**Model inheritance chain:** when present, stage `eval_model` → pipeline `eval_model` → current session model. Each evaluation tier (stage, pipeline, system) can use a different model. When fields are absent, the chain falls through to the next tier automatically.
 
 Other pipeline frontmatter fields (`pipeline`, `domain`, `unit_name`, `boundary_type`) reuse existing placeholders documented above.
 
@@ -200,7 +200,7 @@ The `eval-gate.md.template` generates per-stage evaluation prompts placed in sta
 | `{{EVAL_CRITERIA_PROSE}}` | Stage `eval_criteria` field | Numbered list of criteria in prose form |
 | `{{PIPELINE_EVAL_NOTE}}` | Reserved for future pipeline-level eval | Static placeholder text: `"Not implemented. Reserved for future pipeline-level evaluation tier."` |
 
-The `eval_tier: "stage"` field in the eval-gate.md frontmatter accommodates future pipeline-level (`"pipeline"`) and Sauron-level (`"system"`) evaluators.
+The `eval_tier: "stage"` field in the eval-gate.md frontmatter accommodates future pipeline-level (`"pipeline"`) and system-level (`"system"`, run by the Orchestrator) evaluators.
 
 ### Progressive Frontmatter Block Examples (2026.04.17.1)
 
