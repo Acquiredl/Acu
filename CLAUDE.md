@@ -17,20 +17,26 @@ This is the mental model. The rest of this document — the mechanical names (pi
 Acu's architecture is organized around isolation, gates, and structure:
 
 - **Isolation** — Each pipeline runs independently with its own stages, gates, and context. No pipeline can reach into another. The Orchestrator is the only component with cross-pipeline visibility.
-- **Deterministic gates** — Every stage transition requires a binary pass/fail check (file existence, word counts, section headers, cross-references). Nothing advances without passing its gate.
+- **Two-layer gates** — Every stage transition passes a deterministic structural check (file existence, word counts, section headers, cross-references) followed, where configured, by an LLM-based semantic evaluation across three tiers (stage, pipeline, system). The structural layer is binary; the semantic layer implements the Evaluator-Optimizer loop with bounded retries. Nothing advances without passing both.
 - **Structure as schema** — Templates enforce directory layout and file requirements. CLAUDE.md files scope what context gets loaded. Validation is structural, not semantic.
 - **Audit trail** — Every transition is logged with session ID and SHA256. `syslog.sh` aggregates across pipelines.
-- **Low learning friction** — Complexity will grow; the learning *gradient* is a design choice. Prefer optional over required, progressive disclosure over upfront config, legible names over clever ones. See `_templates/methods/low-learning-friction.md`.
 - **Threat model** — Pipeline isolation, input validation, and defined attack surfaces. See `THREAT-MODEL.md`.
 
 For the full design rationale mapped against agent engineering standards, see `_templates/methods/agent-engineering.md`.
+
+## Engineering Principles
+
+These govern how we build *into* the framework. Where architectural principles describe what Acu is, engineering principles describe the discipline that keeps it coherent as it grows.
+
+- **Low learning friction** — Complexity will grow; the learning *gradient* is a design choice. Prefer optional over required, progressive disclosure over upfront config, legible names over clever ones. See `_templates/methods/low-learning-friction.md`.
+- **Durability over expediency** — Every change should leave the framework better now *and* for all future uses of Acu. No quick fixes, no local workarounds that shift cost forward. If a fix only holds because of a specific caller or a narrow assumption, it isn't the fix — find the systemic one.
 
 ## Subsystems
 
 | Subsystem | Location | Role |
 |-----------|----------|------|
 | **Orchestrator** | `Orchestrator/CLAUDE.md` | Scheduler and dispatcher. Routes work, reviews output, pushes improvements. The only component with cross-pipeline visibility. |
-| **Gates** | `pipelines/*/gates/` | Quality checks. Binary pass/fail at every stage transition. |
+| **Gates** | `pipelines/*/gates/` | Quality checks at every stage transition. Structural pass/fail first, then LLM-based semantic evaluation where configured. |
 | **Templates** | `_templates/` | Blueprints that replicate into new pipelines. Versioned as a set. |
 | **Routes** | `ROUTES.yaml` | Dispatch table. Single source of truth for all routing decisions. |
 | **Skills** | `.claude/skills/acu-*` | User-facing commands for framework services: generate, intake, check, update. |

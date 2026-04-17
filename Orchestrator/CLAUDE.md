@@ -94,3 +94,4 @@ Methods are indexed in `ROUTES.yaml` under the `methods:` key — the `applies_t
 - All final outputs live inside their respective pipeline. Nothing ships from root.
 - Review before push — observe the pattern across multiple pipelines before promoting it to a framework change.
 - When a stage's constraints or exit gate section is edited, verify the corresponding gate script still matches. Log mismatches to `REVIEW-LOG.md`.
+- When a validate.md or review pass surfaces multiple candidate successor initiatives, present them as a menu — do not bundle. One initiative at a time keeps traceability per-rule and leaves room to pause or redirect. Exception: a bug fix that touches the same file as the current initiative is small enough to fold in — but ask, don't assume.

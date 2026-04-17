@@ -41,7 +41,8 @@ Accept a validated handoff from Brainstorming (or a structured proposal from the
 3. Map dependencies between items (which items must complete before others can start)
 4. Group items into phases based on dependency ordering
 5. For each item, define what "done" looks like (file changed, gate wired, metric available)
-6. Write `plan.md` with the scoped item list, phase ordering, and completion criteria
+6. For every file in the "Files touched" list, write a pillar check. At minimum, answer: does this edit earn its place against Low Learning Friction? If a touch can't justify itself (documents an optional feature in a high-traffic index, adds a conditional for a narrow concern, spreads docs across locations), drop it from scope now — not at Implement time.
+7. Write `plan.md` with the scoped item list, phase ordering, and completion criteria
 
 ## Exit Gate
 
@@ -50,6 +51,7 @@ Accept a validated handoff from Brainstorming (or a structured proposal from the
 - Dependencies between items are explicit — no circular dependencies
 - Phase ordering respects dependencies — no item appears before its prerequisites
 - The source handoff is referenced by path in intake.yaml
+- Every "Files touched" entry has a documented pillar check; any touches that fail the check are removed from scope
 
 ## Constraints
 
