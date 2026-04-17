@@ -23,6 +23,8 @@ think of it like setting up an office. you create departments (pipelines), each 
 
 3. **An Anthropic API key** — Claude Code needs this to talk to the AI. get one at [console.anthropic.com](https://console.anthropic.com). it's pay-per-use, a typical pipeline run costs a few cents depending on the model and how much work is involved. You can run it without an api key but you will lose the semantic check gate layer. explained on step 6.
 
+**optional — only if you want observability later:** the `pulse.mjs`, `observe.mjs`, and trace-export scripts run on **Node.js 18+** ([nodejs.org](https://nodejs.org)). after installing Node, run `npm install` once inside the Acu folder to pull in the Langfuse client. you don't need any of this for your first pipeline — pipelines themselves only need bash (Git Bash on Windows works, WSL works).
+
 ## step 1: clone the repo
 
 open a terminal (or the terminal inside VS Code) and run:
