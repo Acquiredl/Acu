@@ -1,0 +1,22 @@
+initiative:
+  id: "frontmatter-slim-down"
+  name: "Progressive Frontmatter — Off-By-Default Fields Absent from Templates"
+  description: "Apply Low Learning Friction Rule 2 (progressive frontmatter) to generated pipeline and stage CLAUDE.md templates. Remove off-by-default fields (parallel_eligible: false, empty observability, eval_chain, gate_type/eval_model: inherit, empty pipeline_eval_criteria) from default templates. Present them only when the corresponding feature is enabled. Bump template version and publish update patches for existing pipelines."
+  created: "2026-04-17"
+  engineer: "Stephane"
+
+source:
+  type: "sauron-proposal"
+  path: "_roadmap/initiatives/learning-friction-research/validate.md"
+  date: "2026-04-17"
+
+scope:
+  pillars: 1
+  items: 6
+  phases: 3
+  affects:
+    - templates
+    - skills
+
+rules:
+  scope: "templates and template-driven generation only — no runtime gate or eval logic changes. The shape of what's emitted changes; what the emitted artifacts mean does not."

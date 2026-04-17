@@ -78,11 +78,14 @@ Interpret the exit code:
 3. Read pipeline CLAUDE.md frontmatter for `eval_chain`, `eval_model`, `pipeline_eval_criteria`
 
 **For stage tier:**
-4. Read stage CLAUDE.md frontmatter: `eval_criteria`, `max_retries`, `outputs`, `eval_model`
-5. Resolve `eval_model` inheritance: stage → pipeline → session
-6. If `eval_criteria` empty → fall back to `gate_criteria` with `[WARN]`
-7. Read each deliverable listed in `outputs` from the unit directory
-8. Read `eval-gate.md` from stage directory if it exists
+4. Read stage CLAUDE.md frontmatter: `eval_criteria` (may be absent), `max_retries` (may be absent — defaults to `1`), `outputs`, `eval_model` (may be absent — resolves via inheritance)
+5. Resolve `eval_model` inheritance: stage → pipeline → session. Absent fields and `"inherit"` literals are both treated as "use next tier." (As of 2026.04.17.1, the `"inherit"` literal is no longer emitted by the generator — absence is the inherit signal.)
+6. If `eval_criteria` is absent or empty:
+   - If the stage is NOT marked for semantic evaluation (the stage omits the field because the feature is off): do nothing. No warning. Structural `gate_criteria` already covered this stage.
+   - If the stage IS marked for semantic evaluation (invoked via `--tier stage` or pipeline has `gate_type: semantic`): fall back to `gate_criteria` with `[WARN]` — this is the misconfiguration case.
+7. Default `max_retries` to `1` when absent.
+8. Read each deliverable listed in `outputs` from the unit directory
+9. Read `eval-gate.md` from stage directory if it exists
 
 **For pipeline tier:**
 4. Read pipeline CLAUDE.md frontmatter: `pipeline_eval_criteria`, `eval_model`
