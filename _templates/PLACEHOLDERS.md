@@ -116,6 +116,8 @@ YAML frontmatter blocks (between `---` delimiters) are prepended to both pipelin
 
 ### Pipeline CLAUDE.md Frontmatter Placeholders
 
+Always-present placeholders:
+
 | Placeholder | Source | Format | Example |
 |-------------|--------|--------|---------|
 | `{{ARCHETYPE_NAME}}` | Step 2.5 classification result | String: archetype key or `"custom"` | `"document"`, `"build"`, `"custom"` |
@@ -123,20 +125,21 @@ YAML frontmatter blocks (between `---` delimiters) are prepended to both pipelin
 | `{{FRONTMATTER_STANDARDS}}` | Standards from domain inputs | Same YAML list format; empty list item `  - []` if none | `  - "PTES"\n  - "NIST SP 800-115"` |
 | `{{HAS_TOOLING}}` | Phase 4 conditional check | Bare YAML boolean (unquoted) | `true` or `false` |
 
-| `{{PIPELINE_GATE_TYPE}}` | User choice during generation | Quoted string: `"structural"`, `"semantic"`, or `"composite"` | `"structural"` |
-| `{{PIPELINE_EVAL_MODEL}}` | Default eval model for all stages | Quoted string: `"opus"`, `"sonnet"`, `"haiku"` | `"sonnet"` |
-
 **Static fields (no placeholders — hardcoded defaults):**
-- `version: "1.0"` — Frontmatter schema version
-- `target_date: ""` — Optional ISO 8601 date. Activated in 2026.04.16.1. When set by the user post-generation, `pipeline-status.sh` surfaces days remaining. Empty string is the opt-out default.
-- `parallel_eligible` — Activated in 2026.04.15.4. Set by `/acu-new` Input 10. Pipeline-level: `true` if any stage uses parallel execution.
-- `observability: false` — Reserved for Improvement 3 (OTel traces)
+- `version: "1.0"` — Frontmatter schema version.
 
-**Model inheritance chain:** stage `eval_model` → pipeline `eval_model` → current session model. Each evaluation tier (stage, pipeline, Sauron) can use a different model, enabling A/B testing across the full hierarchy.
+**Progressive frontmatter (2026.04.17.1):** off-by-default fields are emitted only when the corresponding feature is enabled during `/acu-new`. Absence is the default signal — consumers treat missing fields as the documented default. See "Progressive Frontmatter Blocks" below.
 
-| `{{PIPELINE_EVAL_CRITERIA}}` | Pipeline-level evaluation criteria (faculty head) | YAML list of strings, 2-space indent. Empty `  []` if eval_chain is stage-only | `  - "stages form a coherent whole"` |
-| `{{EVAL_CHAIN}}` | Which evaluation tiers run automatically | YAML list | `["stage"]` or `["stage", "pipeline"]` or `["stage", "pipeline", "system"]` |
-| `{{OBSERVABILITY}}` | User choice during generation (Input 9) | Bare YAML boolean | `false` |
+Conditional-block placeholders (emit the block or an empty string):
+
+| Placeholder | Feature flag (intake input) | When emitted | Contents |
+|-------------|-----------------------------|--------------|----------|
+| `{{TARGET_DATE_BLOCK}}` | Post-generation (not an intake input) | User manually adds if a deadline exists | `target_date: "YYYY-MM-DD"\n` |
+| `{{PARALLEL_PIPELINE_BLOCK}}` | Input 10 (parallel execution) | Any stage has `parallel_eligible: true` | `parallel_eligible: true\n` |
+| `{{EVAL_PIPELINE_BLOCK}}` | Input 8 (semantic eval) | User enabled semantic eval | Multi-line block with `gate_type`, `eval_model`, and (when eval_chain > stage) `pipeline_eval_criteria` and `eval_chain` |
+| `{{OBSERVABILITY_BLOCK}}` | Input 9 (observability) | User enabled observability | `observability: true\n` |
+
+**Model inheritance chain:** when present, stage `eval_model` → pipeline `eval_model` → current session model. Each evaluation tier (stage, pipeline, Sauron) can use a different model. When fields are absent, the chain falls through to the next tier automatically.
 
 Other pipeline frontmatter fields (`pipeline`, `domain`, `unit_name`, `boundary_type`) reuse existing placeholders documented above.
 
@@ -161,13 +164,22 @@ When `observability: true`, `/acu-new` generates `observability.env` from `_temp
 - `specialist` — Stages requiring domain expertise (e.g., exploitation in pentest, testing in build). Use when the stage's methodology is distinct from general-purpose work.
 - `orchestrator` — Rarely used at the stage level. Reserved for coordination-heavy stages that primarily delegate rather than execute.
 
-| `{{FRONTMATTER_EVAL_CRITERIA}}` | Domain quality requirements for this stage | YAML list of strings, 2-space indent. Empty `  []` if gate_type is structural | `  - "rating contains justified score with reasoning"` |
-| `{{MAX_RETRIES}}` | Default 1; user can override during generation | Bare integer | `1` |
-| `{{STAGE_GATE_TYPE}}` | Inherited from pipeline or overridden per stage | Quoted string: `"structural"`, `"semantic"`, `"composite"`, or `"inherit"` | `"inherit"` |
-| `{{EVAL_MODEL}}` | Model for semantic evaluation at this stage | Quoted string: `"opus"`, `"sonnet"`, `"haiku"`, or `"inherit"` | `"inherit"` |
+Conditional-block placeholders (stage level):
 
-| `{{PARALLEL_ELIGIBLE}}` | User choice during generation (Input 10) | Bare YAML boolean | `false` |
-| `{{FAN_OUT_BLOCK}}` | Conditional YAML block; empty when not parallel | Full `fan_out:` block or empty string | See below |
+| Placeholder | Feature flag | When emitted | Contents |
+|-------------|--------------|--------------|----------|
+| `{{PARALLEL_STAGE_BLOCK}}` | Input 10 per-stage | This stage has `parallel_eligible: true` | `parallel_eligible: true\n` |
+| `{{FAN_OUT_BLOCK}}` | Input 10 per-stage | This stage is parallel | Full `fan_out:` block (see below) |
+| `{{EVAL_STAGE_BLOCK}}` | Input 8 per-stage | This stage has semantic eval | Multi-line block: `eval_criteria` (non-empty list). Optionally `max_retries` if overriding the default of 1, `gate_type` if overriding pipeline, `eval_model` if overriding pipeline. |
+
+**Absence semantics (Rule 4 — no split-attention):**
+- `parallel_eligible` absent ≡ `false`.
+- `eval_criteria` absent ≡ this stage does not use semantic evaluation.
+- `max_retries` absent ≡ `1`.
+- `gate_type` absent ≡ inherit from pipeline (or fall through to structural).
+- `eval_model` absent ≡ inherit from pipeline (or fall through to session default).
+
+The `"inherit"` literal is no longer emitted — omitting the field is the inherit signal. This removes the need for the reader to resolve `"inherit"` against another file.
 
 **Static fields (no placeholders — hardcoded defaults):**
 - `version: "1.0"` — Frontmatter schema version
@@ -189,6 +201,116 @@ The `eval-gate.md.template` generates per-stage evaluation prompts placed in sta
 | `{{PIPELINE_EVAL_NOTE}}` | Reserved for future pipeline-level eval | Static placeholder text: `"Not implemented. Reserved for future pipeline-level evaluation tier."` |
 
 The `eval_tier: "stage"` field in the eval-gate.md frontmatter accommodates future pipeline-level (`"pipeline"`) and Sauron-level (`"system"`) evaluators.
+
+### Progressive Frontmatter Block Examples (2026.04.17.1)
+
+**Pipeline, all features off** (the typical case). Blocks all expand to empty strings:
+```yaml
+---
+pipeline: "BookReview"
+version: "1.0"
+domain: "Five-stage book review pipeline"
+archetype: "document"
+stages:
+  - "outline"
+  - "draft"
+  - "review"
+  - "publish"
+unit_name: "review"
+standards:
+  - "Editorial style guide"
+boundary_type: "scope"
+tools_enabled: false
+---
+```
+
+**Pipeline, parallel + semantic eval + observability all enabled:**
+```yaml
+---
+pipeline: "BookReview"
+version: "1.0"
+domain: "Five-stage book review pipeline"
+archetype: "document"
+stages:
+  - "outline"
+  - "draft"
+  - "review"
+  - "publish"
+unit_name: "review"
+standards:
+  - "Editorial style guide"
+boundary_type: "scope"
+tools_enabled: false
+parallel_eligible: true
+gate_type: "semantic"
+eval_model: "sonnet"
+pipeline_eval_criteria:
+  - "stages form a coherent whole"
+eval_chain: ["stage", "pipeline"]
+observability: true
+---
+```
+
+**`{{EVAL_PIPELINE_BLOCK}}` contents by configuration:**
+- Eval off: empty string.
+- Eval on, chain = `["stage"]`: `gate_type: "semantic"\neval_model: "sonnet"\n`
+- Eval on, chain = `["stage", "pipeline"]`: adds `pipeline_eval_criteria:\n  ...\neval_chain: ["stage", "pipeline"]\n`
+- Eval on, chain includes `"system"`: same as pipeline tier plus system in `eval_chain`.
+
+**Stage, all features off** (typical):
+```yaml
+---
+stage: "Draft"
+role: "worker"
+version: "1.0"
+inputs:
+  - name: "outline.md"
+    required: true
+outputs:
+  - name: "draft.md"
+    required: true
+tools_allowed: []
+gate_criteria:
+  - "draft.md exists"
+entry_criteria:
+  - "outline.md exists"
+constraints:
+  - "Never fabricate quotes"
+---
+```
+
+**Stage, parallel + eval enabled:**
+```yaml
+---
+stage: "Draft"
+role: "worker"
+version: "1.0"
+inputs:
+  - name: "outline.md"
+    required: true
+outputs:
+  - name: "draft.md"
+    required: true
+tools_allowed: []
+gate_criteria:
+  - "draft.md exists"
+entry_criteria:
+  - "outline.md exists"
+constraints:
+  - "Never fabricate quotes"
+parallel_eligible: true
+fan_out:
+  strategy: "competing"
+  workers: 3
+  worker_models: ["opus", "sonnet", "haiku"]
+  selection: "eval"
+  max_worker_retries: 1
+eval_criteria:
+  - "draft contains specific scene references"
+---
+```
+
+Note the absence of `gate_type`, `eval_model`, `max_retries` in the stage example above — they're absent because they would inherit from the pipeline. If a stage overrides any of these, the generator emits only the overriding field(s) as part of `{{EVAL_STAGE_BLOCK}}`.
 
 ### Fan-Out Block (`{{FAN_OUT_BLOCK}}`)
 

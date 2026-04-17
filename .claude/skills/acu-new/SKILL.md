@@ -239,20 +239,19 @@ When the pipeline's `gate_type` is `semantic` or `composite` (from Input 8):
 - Every stage marked for semantic evaluation must have non-empty `eval_criteria` in its CLAUDE.md frontmatter. These are semantic quality criteria requiring LLM judgment — separate from structural `gate_criteria`.
 - Derive `eval_criteria` from the exit gate prose: structural criteria stay in `gate_criteria` (file existence, word counts), semantic criteria go in `eval_criteria` (quality of reasoning, coherence, relevance).
 - Generate `eval-gate.md` in the stage directory from `_templates/eval-gate.md.template` for each stage with evaluation.
-- Fill `{{PIPELINE_GATE_TYPE}}` in pipeline CLAUDE.md (default `"structural"`).
-- Fill `{{PIPELINE_EVAL_MODEL}}` in pipeline CLAUDE.md (default `"sonnet"`).
-- Fill stage frontmatter: `{{FRONTMATTER_EVAL_CRITERIA}}` (semantic criteria or `  []`), `{{MAX_RETRIES}}` (default `1`), `{{STAGE_GATE_TYPE}}` (default `"inherit"`), `{{EVAL_MODEL}}` (default `"inherit"`).
-- Stages NOT marked for evaluation get `eval_criteria: []` and `gate_type: "inherit"` — they inherit the pipeline default and fall back to structural-only if not overridden.
+- Emit the pipeline-level eval fields via `{{EVAL_PIPELINE_BLOCK}}` (see Phase 0.7): `gate_type`, `eval_model`, and — when eval_chain > stage — `pipeline_eval_criteria` and `eval_chain`.
+- Emit the per-stage eval fields via `{{EVAL_STAGE_BLOCK}}` for stages with semantic evaluation. Contains `eval_criteria`; optionally `max_retries` (only if overriding the default `1`), `gate_type` (only if overriding pipeline), `eval_model` (only if overriding pipeline).
+- Stages NOT marked for evaluation omit the `{{EVAL_STAGE_BLOCK}}` entirely. Absence is the inherit signal — no `"inherit"` literals are emitted.
 
 **L. Parallel stages — fan_out configuration and selection requirements:**
 When a stage has `parallel_eligible: true` (from Input 10):
 - Generate the `{{FAN_OUT_BLOCK}}` with the strategy-specific YAML block (see `_templates/PLACEHOLDERS.md` → "Fan-Out Block" for the three shapes).
-- Fill `{{PARALLEL_ELIGIBLE}}` as `true` for the stage and `true` for the pipeline (if any stage is parallel).
-- For `competing` and `competing_teams` strategies: the stage MUST have non-empty `eval_criteria` because selection needs scoring criteria. Derive eval_criteria from exit gate prose if not already present.
+- Emit `{{PARALLEL_STAGE_BLOCK}}` as `parallel_eligible: true\n` for the parallel stage, and `{{PARALLEL_PIPELINE_BLOCK}}` as `parallel_eligible: true\n` for the pipeline (if any stage is parallel).
+- For `competing` and `competing_teams` strategies: the stage MUST have non-empty `eval_criteria` (emitted in `{{EVAL_STAGE_BLOCK}}`) because selection needs scoring criteria. Derive eval_criteria from exit gate prose if not already present.
 - For `split_by_subtask`: verify subtask count matches worker count.
 - For `competing`: if `worker_personas` provided, length must match worker count. If `worker_models` provided, length must match worker count.
 - For `competing_teams`: subtask count must match `workers_per_team`. If `team_models` provided, length must match `teams`.
-- Stages NOT marked for parallel get `parallel_eligible: false` with no `fan_out` block (empty `{{FAN_OUT_BLOCK}}`).
+- Stages NOT marked for parallel omit `{{PARALLEL_STAGE_BLOCK}}` and `{{FAN_OUT_BLOCK}}` entirely — absence is the `false` signal.
 
 ---
 
@@ -270,6 +269,37 @@ After classification, apply these conditional expansions when generating stage C
 
 Apply only the conditions that match — do not add constraints for conditions that don't apply. When in doubt, show the expansion in the proposal and let the user confirm.
 
+---
+
+**Phase 0.7 — Progressive Frontmatter Emission (feature-flag → block mapping):**
+
+Per Low Learning Friction Rule 2, a frontmatter field is only present when the feature it configures is active. After collecting the 7–10 domain inputs (Step 2) and before rendering templates (Phase 1), compute the emission set from the intake answers.
+
+**Emission table — pipeline `CLAUDE.md` conditional blocks:**
+
+| Block placeholder | Intake trigger | Emit (non-empty) when | Block contents |
+|-------------------|----------------|-----------------------|----------------|
+| `{{TARGET_DATE_BLOCK}}` | none (post-generation user input) | User volunteers a deadline during generation | `target_date: "YYYY-MM-DD"\n` |
+| `{{PARALLEL_PIPELINE_BLOCK}}` | Input 10 (parallel execution) | Any stage has `parallel_eligible: true` | `parallel_eligible: true\n` |
+| `{{EVAL_PIPELINE_BLOCK}}` | Input 8 (semantic eval) | Input 8 = yes | Multi-line: `gate_type: "<chosen>"\neval_model: "<chosen>"\n` where `<chosen>` is the user's pick (`"semantic"`/`"composite"`, and `"sonnet"`/`"opus"`/`"haiku"`); if `eval_chain` > `["stage"]` also append `pipeline_eval_criteria:\n  - "..."\neval_chain: [...]\n` |
+| `{{OBSERVABILITY_BLOCK}}` | Input 9 (observability) | Input 9 = yes | `observability: true\n` |
+
+**Emission table — stage `CLAUDE.md` conditional blocks (per stage):**
+
+| Block placeholder | Intake trigger | Emit (non-empty) when | Block contents |
+|-------------------|----------------|-----------------------|----------------|
+| `{{PARALLEL_STAGE_BLOCK}}` | Input 10 per-stage | This stage has `parallel_eligible: true` | `parallel_eligible: true\n` |
+| `{{FAN_OUT_BLOCK}}` | Input 10 per-stage | This stage is parallel | Full `fan_out:` block per strategy (see PLACEHOLDERS.md → Fan-Out Block) |
+| `{{EVAL_STAGE_BLOCK}}` | Input 8 per-stage | This stage has semantic eval | `eval_criteria:\n  - "..."\n`; append `max_retries: N\n` only if overriding default `1`; append `gate_type: "..."\n` only if overriding pipeline default; append `eval_model: "..."\n` only if overriding pipeline default |
+
+**Absence semantics (locked by Rule 4):**
+- The literal `"inherit"` is never emitted. Absence is the inherit signal.
+- `parallel_eligible` absent ≡ `false`. `eval_criteria` absent ≡ stage does not use semantic eval. `max_retries` absent ≡ `1`. `gate_type` absent ≡ inherit from pipeline then fall through to structural. `eval_model` absent ≡ inherit from pipeline then fall through to session model. `observability` absent ≡ disabled. `target_date` absent ≡ no deadline.
+
+**Convention:** when in doubt, emit nothing. Only emit a field when the user's answer is a non-default configuration.
+
+---
+
 **Phase 1 — Structure:**
 1. Create `pipelines/{Name}/` directory tree
 2. Create stage directories using `{N}-{Name}/` naming (see Rule A)
@@ -278,6 +308,7 @@ Apply only the conditions that match — do not add constraints for conditions t
    - `{{FRONTMATTER_STAGES}}`: YAML list of lowercase stage names, 2-space indent (e.g., `  - "research"\n  - "draft"`)
    - `{{FRONTMATTER_STANDARDS}}`: YAML list of standards from Input 5, same format. If none: `  []`
    - `{{HAS_TOOLING}}`: bare `true` or `false` (not quoted)
+   - **Progressive frontmatter blocks** (see Phase 0.7): `{{TARGET_DATE_BLOCK}}`, `{{PARALLEL_PIPELINE_BLOCK}}`, `{{EVAL_PIPELINE_BLOCK}}`, `{{OBSERVABILITY_BLOCK}}`. Each expands to either its populated content or an empty string based on the feature-flag table below.
 4. Generate per-stage `CLAUDE.md` files from `_templates/stage-claude.md.template`. Fill frontmatter placeholders (Rule J):
    - `{{STAGE_ROLE}}`: `"worker"` (default), `"specialist"` for domain-expertise stages, `"orchestrator"` for coordination stages
    - `{{FRONTMATTER_INPUTS}}`: For stage 1: `  - name: "intake.yaml"\n    required: true`. For stage N: prior stage's output(s) as inputs.
@@ -286,6 +317,7 @@ Apply only the conditions that match — do not add constraints for conditions t
    - `{{FRONTMATTER_GATE_CRITERIA}}`: Terse, parseable form of exit gate criteria. Each criterion: `"{artifact} {condition}"`. Generated simultaneously with `{{EXIT_GATE_CRITERIA}}` prose from the same domain analysis.
    - `{{FRONTMATTER_ENTRY_CRITERIA}}`: Prior stage's `gate_criteria`. For stage 1: `[]`
    - `{{FRONTMATTER_CONSTRAINTS}}`: List form of stage constraints. Generated simultaneously with `{{STAGE_CONSTRAINTS}}` prose.
+   - **Progressive frontmatter blocks** (see Phase 0.7): `{{PARALLEL_STAGE_BLOCK}}`, `{{FAN_OUT_BLOCK}}`, `{{EVAL_STAGE_BLOCK}}`. Same emission rule — populated or empty per the flag table.
 
 **Phase 2 — Templates:**
 5. Generate intake document from `_templates/intake.yaml.template` (apply Rule D for reporting block)
@@ -377,15 +409,16 @@ After building, verify:
 - [ ] Frontmatter `stages` list matches the actual stage directories created
 - [ ] Frontmatter `gate_criteria` in each stage correspond to the `## Exit Gate` prose section
 - [ ] No `{{` placeholder strings in frontmatter sections
-- [ ] If gate_type is semantic/composite: `eval_criteria` is non-empty for relevant stages (Rule K)
+- [ ] Progressive frontmatter: off-by-default fields are ABSENT from generated frontmatter (Phase 0.7). Do not emit `parallel_eligible: false`, `observability: false`, `gate_type: "inherit"`, `eval_model: "inherit"`, empty `eval_criteria`, empty `pipeline_eval_criteria`, or default `max_retries: 1`.
+- [ ] If gate_type is semantic/composite: `eval_criteria` is non-empty and present for relevant stages (Rule K)
 - [ ] If gate_type is semantic/composite: `eval-gate.md` exists in relevant stage directories (Rule K)
-- [ ] `max_retries` is a non-negative integer in all stage frontmatter
-- [ ] If observability enabled: `observability.env` exists in pipeline root, `observability.env` is in `.gitignore`
-- [ ] Pipeline frontmatter `observability` field matches user choice (true/false)
-- [ ] Pipeline frontmatter `eval_chain` matches user choice (default: `["stage"]`)
+- [ ] `max_retries` is present only when overriding the default (`1`); if present, is a non-negative integer
+- [ ] If observability enabled: `observability: true` is present in pipeline frontmatter; `observability.env` exists in pipeline root; `observability.env` is in `.gitignore`
+- [ ] If observability disabled: `observability` field is absent from pipeline frontmatter
+- [ ] If eval_chain > `["stage"]`: `eval_chain` is present in pipeline frontmatter (absent if default stage-only)
 - [ ] If eval_chain includes "pipeline": `pipeline_eval_criteria` is non-empty in pipeline frontmatter
 - [ ] If eval_chain includes "pipeline": `eval-pipeline.md` exists in pipeline root
-- [ ] If parallel stages configured: `parallel_eligible: true` in both stage and pipeline frontmatter (Rule L)
+- [ ] If parallel stages configured: `parallel_eligible: true` present in both stage (the parallel stage) and pipeline frontmatter (Rule L). Non-parallel stages omit the field.
 - [ ] If parallel stages configured: `fan_out` block present with all strategy-required fields (Rule L)
 - [ ] If competing/competing_teams: `eval_criteria` is non-empty for selection (Rule L)
 - [ ] If worker_personas/worker_models provided: list lengths match worker count (Rule L)

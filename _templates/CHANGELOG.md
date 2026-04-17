@@ -8,6 +8,74 @@ pipelines up to the current template standard without touching domain-specific c
 
 ---
 
+## 2026.04.17.1 — Progressive Frontmatter (Low Learning Friction Rule 2)
+
+Source: Roadmap initiative `frontmatter-slim-down` (see `_roadmap/initiatives/frontmatter-slim-down/plan.md`). First successor initiative to `learning-friction-research`. Applies Rule 2 (progressive frontmatter) from `_templates/methods/low-learning-friction.md`: off-by-default frontmatter fields are absent from generated templates, present only when the corresponding feature is enabled.
+
+### What changed
+
+**pipeline-claude.md.template** — 7 always-emitted frontmatter fields replaced by 4 conditional blocks.
+- Removed (from default emission): `target_date`, `parallel_eligible`, `gate_type`, `eval_model`, `pipeline_eval_criteria`, `eval_chain`, `observability`.
+- Added placeholders (all follow the `{{FAN_OUT_BLOCK}}` conditional-substitution precedent): `{{TARGET_DATE_BLOCK}}`, `{{PARALLEL_PIPELINE_BLOCK}}`, `{{EVAL_PIPELINE_BLOCK}}`, `{{OBSERVABILITY_BLOCK}}`.
+- Each block expands to either its populated content or an empty string. When features are off, blocks are empty — the closing `---` sits directly after `tools_enabled`.
+- Net effect: a features-all-off pipeline frontmatter drops from 16 → 9 lines (~44% reduction).
+- Version bump: 2026.04.16.1 → 2026.04.17.1.
+
+**stage-claude.md.template** — 5 always-emitted frontmatter fields replaced by 3 conditional blocks (one was already conditional).
+- Removed (from default emission): `parallel_eligible`, `eval_criteria`, `max_retries`, `gate_type`, `eval_model`.
+- Added placeholders: `{{PARALLEL_STAGE_BLOCK}}`, `{{EVAL_STAGE_BLOCK}}` (`{{FAN_OUT_BLOCK}}` continues unchanged).
+- The literal `"inherit"` is no longer emitted by the generator. Absence of `gate_type`/`eval_model` signals inheritance — removes the Rule-4 split-attention burden (reader no longer has to resolve `"inherit"` against another file).
+- Net effect: a features-all-off stage frontmatter drops from ~15 → 9 lines (~40% reduction).
+- Version bump: 2026.04.15.4 → 2026.04.17.1.
+
+**PLACEHOLDERS.md** — Documents the new conditional-block placeholders with complete emission tables and concrete before/after expansion examples. Absence semantics spelled out explicitly (per Rule 4).
+
+**acu-new SKILL.md** — New Phase 0.7 section "Progressive Frontmatter Emission (feature-flag → block mapping)" with two emission tables (pipeline-level, stage-level). Phase 1 template-fill instructions updated. Rules K (semantic eval) and L (parallel) rewritten to describe block-based emission rather than scalar-field filling. Step 5 VERIFY checklist updated: asserts off-by-default fields are ABSENT rather than checking for specific default values.
+
+**acu-eval SKILL.md** — Stage-tier step 6 tuned. `eval_criteria` empty-or-absent no longer emits a spurious `[WARN]` when the stage is not marked for semantic evaluation (the expected state under Rule 2). Step 7 adds `max_retries` default-on-missing (`1`). Noted that absent fields and `"inherit"` literals are equivalent — both trigger inheritance resolution.
+
+**acu-parallel SKILL.md** — "Do NOT use when" and Step 1 parse explicitly treat absent `parallel_eligible` as equivalent to `false`. Under the new convention, non-parallel stages omit the field entirely.
+
+### Design decisions
+
+- **Absence ≡ default.** The user's mental model is that a field is *either* present with its active-feature value *or* absent (feature off). The literal `"false"`, `"inherit"`, `null`, or empty array in a template were all redundancy-effect noise per Sweller & Chandler (1991).
+- **`{{FAN_OUT_BLOCK}}` was already the pattern.** The fan-out block has been conditional from the start. This change generalizes that precedent to every off-by-default field, using the same substitution technique (opaque-string expansion or empty). No new template mechanism needed.
+- **Existing pipelines untouched.** Every consumer (advance.sh, acu-eval, acu-parallel, acu-check, pipeline-status.sh) already tolerates absence — field-audit verified this before changing the templates. Live pipelines keep their current field values; the preserve-existing-value strategy means `/acu-update` never removes fields from an existing pipeline.
+- **`target_date` removed from default emission.** It was shipping as `target_date: ""` with an inline comment — the research flagged this as a Rule-2 violation. The field survives as an opt-in conditional block; users who want a deadline add `target_date: "YYYY-MM-DD"` manually (the pattern is documented in PLACEHOLDERS.md). The `pipeline-status.sh` reader is already guarded with `[[ -n "${target_date:-}" ]]` — no regression.
+- **`"inherit"` literal deprecated, not banned.** Existing pipelines continue to work. advance.sh.template and acu-eval accept both the literal and absence as inheritance signals. Future generations skip the literal entirely.
+- **No automatic migration of existing pipelines.** Slimming live pipelines is a user choice, not a forced migration. `/acu-check` does not flag "extra" fields.
+
+### Patches
+
+```yaml
+patches:
+  - id: progressive-frontmatter-pipeline-v1
+    description: "Pipeline CLAUDE.md frontmatter now uses conditional blocks for off-by-default fields"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Existing pipelines keep their current field values — no change needed. Users who want to slim an existing pipeline may manually remove default-valued fields (parallel_eligible: false, gate_type: \"inherit\", eval_model: \"inherit\", observability: false, empty pipeline_eval_criteria/eval_chain) but no migration is required. Consumers tolerate both presence and absence."
+
+  - id: progressive-frontmatter-stage-v1
+    description: "Stage CLAUDE.md frontmatter now uses conditional blocks for off-by-default fields"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Same preserve-existing-value policy as pipeline frontmatter. Stages may manually drop parallel_eligible: false, max_retries: 1, gate_type: \"inherit\", eval_model: \"inherit\", empty eval_criteria — all optional. No gate or skill currently requires the fields to be present with default values."
+
+  - id: acu-eval-absence-tolerance-v1
+    description: "acu-eval stage tier: no spurious WARN when eval_criteria absent and feature off; max_retries defaults to 1 on missing"
+    applies_to: ".claude/skills/acu-eval/SKILL.md"
+    type: informational
+    note: "Skill doc update. Existing pipelines with eval_criteria: [] or max_retries: 1 continue to work. New stages omit these fields entirely when the semantic-eval feature is off."
+
+  - id: acu-parallel-absence-tolerance-v1
+    description: "acu-parallel treats absent parallel_eligible as equivalent to false"
+    applies_to: ".claude/skills/acu-parallel/SKILL.md"
+    type: informational
+    note: "Skill doc update. No behavioral change for existing pipelines — parallel_eligible: false and absence now both route to sequential execution with the same error message."
+```
+
+---
+
 ## 2026.04.16.1 — Template Gaps from SboxDevKit
 
 Source: Roadmap initiative `template-gaps-sboxdevkit` (see `_roadmap/initiatives/template-gaps-sboxdevkit/plan.md`), driven by observations in `Brainstorming/REFLECTIONS.md` during the SboxDevKit pipeline generation. Closes three friction gaps surfaced by real use. First initiative to ship under the new Low Learning Friction pillar (`_templates/methods/low-learning-friction.md`).

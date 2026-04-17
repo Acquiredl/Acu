@@ -1,0 +1,74 @@
+initiative:
+  id: "frontmatter-slim-down"
+  name: "Progressive Frontmatter — Off-By-Default Fields Absent from Templates"
+  status: "complete"
+  current_stage: "validate"
+  current_phase: "1"
+  created: "2026-04-17"
+  updated: "2026-04-17T00:31:41Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-17T00:03:38Z"
+    completed: "2026-04-17T00:06:44Z"
+  implement:
+    status: "complete"
+    entered: "2026-04-17T00:06:44Z"
+    completed: "2026-04-17T00:30:42Z"
+  validate:
+    status: "complete"
+    entered: "2026-04-17T00:30:42Z"
+    completed: "2026-04-17T00:31:41Z"
+
+items:
+  field-audit:
+    name: "Audit every frontmatter field in pipeline-claude.md.template and stage-claude.md.template; classify each as always-present / feature-gated / deprecated; document the feature each gated field attaches to"
+    pillar: "low-learning-friction-rule-2"
+    phase: 1
+    status: "done"
+    started: "2026-04-17T00:06:44Z"
+    completed: "2026-04-17T00:12:00Z"
+    evidence: "_roadmap/initiatives/frontmatter-slim-down/field-audit.md"
+  template-refactor:
+    name: "Introduce conditional frontmatter blocks (following existing {{FAN_OUT_BLOCK}} precedent) for each feature-gated field; update pipeline-claude.md.template and stage-claude.md.template; preserve {{FAN_OUT_BLOCK}} pattern"
+    pillar: "low-learning-friction-rule-2"
+    phase: 2
+    status: "done"
+    started: "2026-04-17T00:12:00Z"
+    completed: "2026-04-17T00:20:00Z"
+    evidence: "_templates/pipeline-claude.md.template (stamp bumped to 2026.04.17.1); _templates/stage-claude.md.template (stamp bumped to 2026.04.17.1); _templates/PLACEHOLDERS.md (conditional-block placeholders documented with before/after examples)"
+  generator-update:
+    name: "Update acu-new skill to emit only active fields based on user-answered feature flags during intake; document the flag-to-field mapping so future field additions follow the pattern"
+    pillar: "low-learning-friction-rule-2"
+    phase: 2
+    status: "done"
+    started: "2026-04-17T00:20:00Z"
+    completed: "2026-04-17T00:28:00Z"
+    evidence: ".claude/skills/acu-new/SKILL.md: new Phase 0.7 section (flag-to-block mapping), Phase 1 references updated, Rules K/L rewritten for absence-as-default, Step 5 VERIFY checklist updated"
+  consumer-audit:
+    name: "Audit every consumer of frontmatter (gate scripts, advance.sh, pipeline-status.sh, yq calls in bash scripts) for tolerance to missing fields; add default-on-missing handling where needed"
+    pillar: "low-learning-friction-rule-2"
+    phase: 2
+    status: "done"
+    started: "2026-04-17T00:28:00Z"
+    completed: "2026-04-17T00:35:00Z"
+    evidence: ".claude/skills/acu-eval/SKILL.md stage-tier step 6 (no WARN when feature off) + step 7 (max_retries default 1); .claude/skills/acu-parallel/SKILL.md (absent parallel_eligible treated as false); advance.sh.template and acu-check already absence-tolerant"
+  migration-patch:
+    name: "Bump _templates/VERSION; write CHANGELOG.md entry per requires_meta convention; ensure /acu-update path can remove absent-now-default fields from existing pipelines without data loss"
+    pillar: "low-learning-friction-rule-2"
+    phase: 3
+    status: "done"
+    started: "2026-04-17T00:35:00Z"
+    completed: "2026-04-17T00:42:00Z"
+    evidence: "_templates/VERSION bumped to 2026.04.17.1; _templates/CHANGELOG.md entry added with 4 informational patches (preserve-existing-value policy — no forced migration of live pipelines)"
+  validation-pass:
+    name: "Regenerate a sample pipeline end-to-end via acu-new; run acu-check on existing pipelines; verify gate scripts still pass on both slimmed and pre-slim pipelines"
+    pillar: "low-learning-friction-rule-2"
+    phase: 3
+    status: "done"
+    started: "2026-04-17T00:42:00Z"
+    completed: "2026-04-17T00:50:00Z"
+    evidence: "_roadmap/initiatives/frontmatter-slim-down/validate.md — template-fill simulation, existing-pipeline preservation check, orphan-placeholder check, all success criteria MET"
+
+notes: "Source: successor initiative to learning-friction-research. Applies Rule 2 (progressive frontmatter) from _templates/methods/low-learning-friction.md. Rule 10 (gate stdout trim) is a separate successor initiative, handled next — user explicit: one at a time."

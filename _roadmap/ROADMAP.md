@@ -6,12 +6,14 @@ Master index of all framework evolution initiatives. Each initiative is tracked 
 
 | Initiative | Source | Items | Phase | Stage | Status |
 |------------|--------|-------|-------|-------|--------|
-| [learning-friction-research](initiatives/learning-friction-research/) | Low Learning Friction stub | 5 | 1 (research) | Plan | Plan complete — ready for Implement |
+| [named-subagents](initiatives/named-subagents/) | Conversation proposal (2026-04-16) | 8 | 1 (research) | Plan | Plan drafted — awaiting review |
 
 ## Completed Initiatives
 
 | Initiative | Source | Items | Completed |
 |------------|--------|-------|-----------|
+| [frontmatter-slim-down](initiatives/frontmatter-slim-down/) | learning-friction-research validate.md | 6 | 2026-04-17 |
+| [learning-friction-research](initiatives/learning-friction-research/) | Low Learning Friction stub | 5 | 2026-04-17 |
 | [template-gaps-sboxdevkit](initiatives/template-gaps-sboxdevkit/) | Brainstorming/REFLECTIONS.md | 3 | 2026-04-16 |
 
 ## How This Works

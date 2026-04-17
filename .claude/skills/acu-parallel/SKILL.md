@@ -33,7 +33,7 @@ You are the Parallel Stage Orchestrator for the Acu framework. You manage multi-
 - The user wants to execute a parallel stage before running the gate
 
 **Do NOT use when:**
-- The stage has `parallel_eligible: false` — work it sequentially as normal
+- The stage has `parallel_eligible: false` or omits the field — work it sequentially as normal. (As of 2026.04.17.1, generated templates omit `parallel_eligible` when the stage is not parallel; absence is equivalent to `false`.)
 - The user wants to run the gate — use `advance.sh` or `/acu-eval`
 - The user wants to check pipeline health — use `/acu-check`
 
@@ -52,7 +52,7 @@ Accept arguments: `<unit-dir> <stage-name>`
    - Verify `parallel_eligible: true`
    - Verify `fan_out` block is present
    - Parse all fan_out fields: `strategy`, `workers`/`teams`/`workers_per_team`, `subtasks`, `merge`, `selection`, `worker_model`/`worker_models`/`team_models`, `worker_personas`, `max_worker_retries`
-5. If `parallel_eligible` is false or `fan_out` is absent: exit with error "Stage is not configured for parallel execution."
+5. If `parallel_eligible` is false, absent, or `fan_out` is absent: exit with error "Stage is not configured for parallel execution."
 
 ### Step 2: PREPARE — Set up worker context
 
