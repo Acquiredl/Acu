@@ -12,6 +12,7 @@ Master index of all framework evolution initiatives. Each initiative is tracked 
 
 | Initiative | Source | Items | Completed |
 |------------|--------|-------|-----------|
+| [tag-claude-md-quadrants](initiatives/tag-claude-md-quadrants/) | learning-friction-research validate.md | 7 | 2026-04-17 |
 | [gate-stdout-trim](initiatives/gate-stdout-trim/) | learning-friction-research validate.md | 5 | 2026-04-17 |
 | [frontmatter-slim-down](initiatives/frontmatter-slim-down/) | learning-friction-research validate.md | 6 | 2026-04-17 |
 | [learning-friction-research](initiatives/learning-friction-research/) | Low Learning Friction stub | 5 | 2026-04-17 |

@@ -8,6 +8,72 @@ pipelines up to the current template standard without touching domain-specific c
 
 ---
 
+## 2026.04.17.3 — Quadrant-Tag CLAUDE.md Files (Low Learning Friction Rule 6)
+
+Source: Roadmap initiative `tag-claude-md-quadrants` (see `_roadmap/initiatives/tag-claude-md-quadrants/plan.md`). Third successor initiative to `learning-friction-research`. Applies Rule 6 (one artifact, one Diátaxis quadrant — or label sections) via tagging, explicitly NOT splitting.
+
+### What changed
+
+**pipeline-claude.md.template** — Top-of-file callout + per-H2 quadrant tags.
+- Added `<!-- diataxis-primary: reference -->` after the version stamp.
+- Added `> **Mixed-mode doc** ...` callout before the first H2.
+- Added `<!-- quadrant: explanation | reference | how-to -->` tag immediately preceding every H2 section (7 tags: Identity=explanation, Task=reference, Context=explanation, Pipeline Stages=reference, Routing Table=reference, Lifecycle=how-to, Constraints=how-to).
+- Version stamp: 2026.04.17.1 → 2026.04.17.3.
+
+**stage-claude.md.template** — Same treatment.
+- 7 H2 tags: Objective=reference, Methodology=how-to, Approaches=reference, Entry Gate=reference, Exit Gate=reference, Constraints=how-to, On Gate Failure=how-to.
+- Version stamp: 2026.04.17.1 → 2026.04.17.3.
+
+**workspace-claude.md.template** — Same treatment. First per-file version stamp introduced (previously unversioned).
+- 7 H2 tags: Identity=explanation, Task=reference, Context=explanation, Folder Structure=reference, Routing Table=reference, Constraints=how-to, Output Format=reference, Maintenance=explanation.
+- Version stamp: (unversioned) → 2026.04.17.3.
+
+**_templates/methods/low-learning-friction.md** — Rule 6 now includes a concrete worked example of the tag pattern. Abstract prose alone didn't satisfy Rule 5 (worked example before derivation) — the rule now shows a complete code-fenced block a reader can copy. Links to the initiative plan for the decision trace.
+
+**.claude/skills/acu-new/SKILL.md** — New Phase 0.8 section "Quadrant Tag Emission" instructing the generator to preserve the callout + tags during template fill. Classification reference points to `quadrant-classification.md`. Custom domain-specific sections (beyond the template) get tagged at generation time; default for unclassified is reference.
+
+**.claude/skills/acu-check/SKILL.md** — New Check 23 "Quadrant tag presence" at warn-level only. Scans every CLAUDE.md under a pipeline for H2 sections; any H2 without a preceding quadrant tag triggers `[WARN] N H2 section(s) missing quadrant tag`. Never `[FAIL]` — existing pipelines generated before 2026.04.17.3 pre-date the convention. Report format extended with a `quadrant tags:` line.
+
+### Design decisions
+
+- **Tagging chosen over splitting.** Acu's single-`CLAUDE.md`-per-context loading convention makes splitting a net learning-friction loss (agent reads one file, not four; Rule 4 split-attention avoided). Full decision trace in `plan.md`.
+- **HTML comments, not visible suffixes.** Tags are invisible in rendered markdown, visible to the LLM reading the raw file. Human reviewers rely on the top-of-file callout for mode orientation; the agent uses the per-H2 tags for precise section-level routing.
+- **Three quadrants only, for now.** `reference`, `how-to`, `explanation`. `tutorial` is reserved — Initiative #4 (Rule 8 successor) will add tutorial files and extend the tag vocabulary.
+- **Warn, not fail, on missing tags.** Rule 10 (tier-1 only) — tag-presence is a guideline, not a gate. Warning surfaces the convention without blocking.
+- **Classification is canonical, not re-derived.** Future CLAUDE.md authors copy from `_roadmap/initiatives/tag-claude-md-quadrants/quadrant-classification.md`. Avoids repeated subjective judgment calls on edge cases (Identity vs Objective, Maintenance vs Context).
+- **No change to gate scripts, status.yaml, observability emission, Langfuse paths.** Tags are prose annotations only.
+
+### Patches
+
+```yaml
+patches:
+  - id: quadrant-tag-pipeline-v1
+    description: "Pipeline CLAUDE.md now carries top-of-file callout + per-H2 quadrant tags"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Regeneration would overwrite domain content (IDENTITY, CONTEXT, LIFECYCLE_STEPS, etc.) — not safe. Users who want tags on existing pipelines should manually add them per the methods doc example, or regenerate with caution and restore domain content. New generations ship with tags automatically. acu-check Check 23 warns on missing tags but never fails."
+
+  - id: quadrant-tag-stage-v1
+    description: "Stage CLAUDE.md now carries top-of-file callout + per-H2 quadrant tags"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Same preserve-existing-value policy as pipeline-level. Regeneration NOT safe for live stages with filled domain content."
+
+  - id: quadrant-tag-workspace-v1
+    description: "Workspace CLAUDE.md template now carries top-of-file callout + per-H2 quadrant tags"
+    applies_to: "CLAUDE.md"
+    type: informational
+    note: "Workspace CLAUDE.md files are rarer; most users won't have any. Manual adoption recommended."
+
+  - id: acu-check-quadrant-tags-v1
+    description: "acu-check Check 23 added (warn-level quadrant-tag presence)"
+    applies_to: ".claude/skills/acu-check/SKILL.md"
+    type: informational
+    note: "Skill doc update. Existing pipelines that pre-date the tag convention surface as [WARN], never [FAIL]. Gate transitions and structural compliance unaffected."
+```
+
+---
+
 ## 2026.04.17.2 — Gate Stdout: Tier-1 Only (Low Learning Friction Rule 10)
 
 Source: Roadmap initiative `gate-stdout-trim` (see `_roadmap/initiatives/gate-stdout-trim/plan.md`). Second successor initiative to `learning-friction-research`. Applies Rule 10 (gate stdout: tier-1 information only) from `_templates/methods/low-learning-friction.md`.

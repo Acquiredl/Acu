@@ -62,11 +62,35 @@ Every user-produced artifact class (intake, status, skill, method doc, stage CLA
 
 ## Rule 6 — One artifact, one Diátaxis quadrant (or label sections)
 
-Every doc must cleanly answer two questions: *action or cognition?* and *acquisition (study) or application (work)?* When an artifact must carry multiple quadrants (common for LLM-loaded `CLAUDE.md` files), every section is tagged with its quadrant — **Tutorial**, **How-to**, **Reference**, **Explanation** — so both a human reader and the agent know which mode to apply.
+Every doc must cleanly answer two questions: *action or cognition?* and *acquisition (study) or application (work)?* When an artifact must carry multiple quadrants (common for LLM-loaded `CLAUDE.md` files), every H2 section is tagged with its quadrant — **Reference**, **How-to**, **Explanation**, or **Tutorial** — so both a human reader and the agent know which mode to apply.
 
 **Derivation:** Procida, diataxis.fr — the compass test (`tutorials-how-to/`) and the non-mixing principle.
 
 **Design test:** Pick any section of a doc. Can you name its quadrant in one word? If not, either split it or label it.
+
+**Acu implementation (2026.04.17.3):** all generated `CLAUDE.md` files carry a top-of-file callout declaring the dominant quadrant plus per-H2 HTML-comment tags. Tags are invisible in rendered markdown but machine-readable:
+
+```markdown
+<!-- diataxis-primary: reference -->
+# Pipeline Name
+
+> **Mixed-mode doc** — primary quadrant: **Reference**. Explanation: Identity, Context. How-to: Lifecycle, Constraints.
+
+<!-- quadrant: explanation -->
+## Identity
+...
+
+<!-- quadrant: reference -->
+## Pipeline Stages
+| Stage | Purpose | Entry Gate | Key Output |
+...
+
+<!-- quadrant: how-to -->
+## Lifecycle
+1. Create unit directory...
+```
+
+Tag values: `reference`, `how-to`, `explanation`, `tutorial`. One tag per H2, placed immediately above the header with no blank line between. `/acu-check` has a warn-level structural check for missing tags. Splitting was explicitly rejected because it fights the single-`CLAUDE.md`-per-context loading convention — see `_roadmap/initiatives/tag-claude-md-quadrants/plan.md`.
 
 ## Rule 7 — "Reference" is a protected label; explanation earns its own label
 
