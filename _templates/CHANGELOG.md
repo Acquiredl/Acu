@@ -8,6 +8,77 @@ pipelines up to the current template standard without touching domain-specific c
 
 ---
 
+## 2026.04.17.2 — Gate Stdout: Tier-1 Only (Low Learning Friction Rule 10)
+
+Source: Roadmap initiative `gate-stdout-trim` (see `_roadmap/initiatives/gate-stdout-trim/plan.md`). Second successor initiative to `learning-friction-research`. Applies Rule 10 (gate stdout: tier-1 information only) from `_templates/methods/low-learning-friction.md`.
+
+### What changed
+
+**_roadmap/gates/advance.sh** — Default stdout now emits tier-1 only: `[PASS]` / `[FAIL]` / `[WARN]` lines and the final `GATE PASSED` / `GATE FAILED` verdict. Status-field update traces, marker file path, checkpoint directory path, and confirmation line are now tier-2 — hidden unless `ACU_VERBOSE` is set.
+- Added `vlog()` helper function: `[[ -n "${ACU_VERBOSE:-}" ]] && echo "$@"`.
+- 12 `echo` calls wrapped in `vlog` (status-field updates, marker, checkpoint, confirmation).
+- No change to exit codes, audit log writes, status.yaml modifications, checkpoint creation, marker creation, or dry-run output.
+
+**_templates/advance.sh.template** — Same treatment. Every new pipeline inherits the quiet default.
+- Same `vlog()` helper.
+- 12 `echo` calls wrapped in `vlog`.
+- Per-file version stamp bumped: `2026.04.15.2` → `2026.04.17.2`.
+
+**_templates/gate.sh.template** — No change needed. Already Rule-10 compliant (every echo is `[PASS]` / `[FAIL]` / `[WARN]` or the banner/verdict).
+
+**_roadmap/gates/gate-*.sh** — No change needed. All three gate scripts are already Rule-10 compliant.
+
+### Default vs verbose
+
+**Default (ACU_VERBOSE unset):**
+```
+=== Gate: Plan -> Implement ===
+Initiative: <path>
+
+[PASS] intake.yaml passes schema validation
+[PASS] plan.md exists
+[PASS] plan.md has content (...)
+[PASS] Source handoff referenced: ...
+[PASS] N items tracked in status.yaml
+[PASS] No TODO/FIXME markers in plan.md
+
+GATE PASSED: Ready to proceed to Implement
+```
+~12 lines of purely actionable output.
+
+**Verbose (`ACU_VERBOSE=1 bash gates/advance.sh ...`):**
+Identical to pre-change output — ~24 lines including status-field updates, marker path, checkpoint path, and "Status updated successfully." confirmation.
+
+### Design decisions
+
+- **Environment variable, not flag.** A flag would need to be threaded through every gate script invocation path. An env var inherits naturally into subprocess `bash "$GATE_SCRIPT" ...` calls without plumbing. Lower maintenance cost.
+- **`ACU_VERBOSE` is the only new concept.** Passes Rule 11 (predict-mechanic-in-one-word) — "verbose" is self-describing. No cute name, no acronym, no cultural tax.
+- **Audit log unchanged.** The durable log IS the record. Stdout was duplicative; silencing it doesn't lose information.
+- **Dry-run stays verbose.** Dry-run's job is to tell the user what would happen. It was already informative by design.
+- **Gate scripts keep full `[PASS]` output.** Each check's pass/fail IS user-actionable — the user wants to know which specific check passed.
+- **No `--quiet` added.** If a future need arises for even-quieter output (e.g., CI-only `GATE PASSED/FAILED` with exit code), it gets its own initiative.
+
+### Patches
+
+```yaml
+patches:
+  - id: gate-stdout-vlog-roadmap-v1
+    description: "Add vlog() helper + wrap tier-2 echoes in _roadmap/gates/advance.sh"
+    applies_to: "_roadmap/gates/advance.sh"
+    type: informational
+    note: "Applied in this repo. Not an external pipeline file; no /acu-update consumer."
+
+  - id: gate-stdout-vlog-template-v1
+    description: "Add vlog() helper + wrap tier-2 echoes in advance.sh.template"
+    applies_to: "gates/advance.sh"
+    type: regenerate_from_template
+    template: "advance.sh.template"
+    requires_meta: [stages, unit_lower, unit_upper, unit_name]
+    note: "Safe to regenerate — advance.sh has no user content. Users who regenerate get the quiet default. Users who don't regenerate keep the old verbose output. No forced migration."
+```
+
+---
+
 ## 2026.04.17.1 — Progressive Frontmatter (Low Learning Friction Rule 2)
 
 Source: Roadmap initiative `frontmatter-slim-down` (see `_roadmap/initiatives/frontmatter-slim-down/plan.md`). First successor initiative to `learning-friction-research`. Applies Rule 2 (progressive frontmatter) from `_templates/methods/low-learning-friction.md`: off-by-default frontmatter fields are absent from generated templates, present only when the corresponding feature is enabled.
