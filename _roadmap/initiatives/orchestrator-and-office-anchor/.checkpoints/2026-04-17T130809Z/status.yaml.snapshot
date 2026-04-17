@@ -1,0 +1,82 @@
+initiative:
+  id: "orchestrator-and-office-anchor"
+  name: "Orchestrator Rename + Office-Metaphor Anchor (Low Learning Friction Rules 12 + 13)"
+  status: "active"
+  current_stage: "implement"
+  current_phase: ""
+  created: "2026-04-17"
+  updated: "2026-04-17T13:08:09Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-17T12:21:07Z"
+    completed: "2026-04-17T13:08:09Z"
+  implement:
+    status: "in_progress"
+    entered: "2026-04-17T13:08:09Z"
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+items:
+  vocabulary-audit:
+    name: "Grep the full repo for every reference to Sauron, Uniboss, Teacher, Faculty Head, and university/faculty/classroom metaphor prose. Classify each hit: filesystem path (must rename), code reference (must rename), prose description (rewrite or delete), historical artifact (keep as-is - e.g., CHANGELOG entries that describe past state). Produce a rename-surface audit."
+    pillar: "low-learning-friction-rule-12"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  anchor-prose-draft:
+    name: "Draft the exact office-metaphor prose to land in root CLAUDE.md. Lock the mapping: department = pipeline, project-moving-between-departments = work unit lifecycle, Operations (or Chief-of-Staff) = Orchestrator, quality gate = inspection. Verify the prose teaches the notional machine in under ~150 words; the existing QUICKSTART mention of office/departments/security-guard is the starting draft."
+    pillar: "low-learning-friction-rule-13"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  directory-and-file-rename:
+    name: "Rename Sauron/ directory to Orchestrator/. Update every file path reference: ROUTES.yaml, root CLAUDE.md, skill SKILL.md files (acu-eval especially), methods docs, eval-pipeline.md.template if it references Sauron/, gate scripts that reference Sauron/ paths."
+    pillar: "low-learning-friction-rule-12"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  prose-and-skill-rename:
+    name: "Update prose references in all CLAUDE.md files, skill SKILL.md files, methods docs. Sauron -> Orchestrator (subsystem actor). Delete: Teacher, Faculty Head, Uniboss, and the aspirational Faculty/Class/Student prose cluster. Eval-tier prose: stage-evaluator / pipeline-evaluator / system-evaluator (actor-neutral - the Orchestrator runs the system tier but they are not synonyms). acu-check Check 22 updated to reference Orchestrator."
+    pillar: "low-learning-friction-rule-12"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  root-anchor-integration:
+    name: "Integrate the office-metaphor anchor into root CLAUDE.md. Add an 'Anchor Metaphor' section (or fold into Identity / Context) that presents the mapping: Acu = the office, pipelines = departments, Orchestrator = operations / chief-of-staff, work units = projects moving between departments, gates = inspection points, deliverables = reports. Update QUICKSTART if the existing office passage needs to be cross-referenced."
+    pillar: "low-learning-friction-rule-13"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  migration-patch:
+    name: "Bump _templates/VERSION to 2026.04.17.4. Write CHANGELOG entry describing the rename scope, the office-metaphor adoption, and preserve-existing-value migration for pipelines (none affected - the rename only touches framework-level files, not generated pipeline content). Patch entries: rename-sauron-directory (informational - file move), eval-tier-prose-cleanup (informational - prose change), office-anchor-rootmd (informational - documentation addition)."
+    pillar: "low-learning-friction-rules-12-13"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  validation-pass:
+    name: "Verify no stale 'Sauron' / 'Uniboss' / 'Teacher' / 'Faculty Head' references remain outside historical CHANGELOG entries. Run acu-check structural scan (no regression). Read root CLAUDE.md + anchor; confirm a new reader can infer pipeline/unit/gate semantics from the metaphor without prior CI/CD knowledge (LLM self-test: prompt model to map 'production line' concepts onto Acu structure using only the anchor - should succeed). Measure: lines added to root CLAUDE.md (target <=150 for the anchor section)."
+    pillar: "low-learning-friction-rules-12-13"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+
+notes: "Bundled per user direction (feedback_initiative-sequencing.md default was 'one at a time' but user explicitly requested this bundle because the two changes are deeply coupled - the rename only lands cleanly inside the office metaphor frame). Two pillars: Rule 12 (one name per thing, no proper-noun cultural references as primary) + Rule 13 (metaphors must carry a powerful idea). Combined scope keeps the commit trail cohesive for a conceptual change that is semantically one move."
