@@ -1,0 +1,58 @@
+initiative:
+  id: "advance-sh-sed-anchor"
+  name: "advance.sh sed anchor fix (audit-trail integrity)"
+  status: "active"
+  current_stage: "implement"
+  current_phase: "1"
+  created: "2026-04-17"
+  updated: "2026-04-17T14:13:08Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-17"
+    completed: "2026-04-17T14:13:08Z"
+  implement:
+    status: "in_progress"
+    entered: "2026-04-17T14:13:08Z"
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+items:
+  audit-sed-patterns:
+    name: "Enumerate every sed -i call in _roadmap/gates/advance.sh and _templates/advance.sh.template; cross-reference the existing generated copies under pipelines/*/gates/ for forward evidence; classify each hit as high/medium/low risk for unanchored-regex-corrupts-prose. Produce an audit table with file path, line number, current regex, risk class, and the anchored replacement."
+    pillar: "reliability-deterministic-gates"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  anchor-fix:
+    name: "Apply the ^ anchor to every high/medium-risk sed pattern in both framework-level files. Two lines in _roadmap/gates/advance.sh (current_stage, updated); three lines in _templates/advance.sh.template (current_stage, status-active, updated). Bump per-file version stamps on both file headers. bash -n must pass on both files after the edit."
+    pillar: "reliability-deterministic-gates"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  template-version-bump:
+    name: "Bump _templates/VERSION from 2026.04.17.4 to 2026.04.17.5. Add a CHANGELOG entry describing the bug (unanchored regex silently corrupting evidence prose) and the fix (^ anchor); include one regenerate_from_template patch for gates/advance.sh so /acu-update surfaces the fix to opt-in pipelines."
+    pillar: "reliability-deterministic-gates"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  regression-test:
+    name: "Build a reproducible trap-string regression harness. Create a fixture status.yaml whose items evidence fields contain each of the three trap strings. Run the sed block from the fixed advance.sh against the fixture; assert top-level fields update and evidence fields are preserved. Then run the pre-fix sed block against a second copy of the fixture; assert evidence IS corrupted - proving the test is real, not a tautology."
+    pillar: "reliability-deterministic-gates"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+
+notes: "Source: _roadmap/HANDOFF-advance-sed-bug.md. Bug observed twice in the 2026-04-17 session (frontmatter-slim-down and orchestrator-and-office-anchor). Both times evidence was hand-healed after the gate ran. Micro-initiative scope deliberately chosen (one-line fix) to land reproducible verification evidence alongside the diff."
