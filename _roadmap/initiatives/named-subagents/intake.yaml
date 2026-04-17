@@ -1,0 +1,23 @@
+initiative:
+  id: "named-subagents"
+  name: "Named Subagents at the Worker-Unit Level"
+  description: "Evaluate and adopt Claude Code's .claude/agents/ mechanism for framework-level roles (evaluators, critics, mergers, selectors) currently implemented as inline prompts in acu-eval and acu-parallel. Pipelines remain inline-only to preserve isolation."
+  created: "2026-04-16"
+  engineer: "Stephane"
+
+source:
+  type: "manual"
+  path: ".claude/skills/acu-parallel/SKILL.md"
+  date: "2026-04-16"
+
+scope:
+  pillars: 1
+  items: 8
+  phases: 4
+  affects:
+    - skills
+    - agents
+    - templates
+
+rules:
+  scope: "framework-level named agents only — per-pipeline named agents are explicitly out of scope; fan_out string personas remain supported"

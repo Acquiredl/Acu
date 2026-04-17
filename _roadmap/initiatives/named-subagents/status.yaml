@@ -1,0 +1,90 @@
+initiative:
+  id: "named-subagents"
+  name: "Named Subagents at the Worker-Unit Level"
+  status: "active"
+  current_stage: "plan"
+  current_phase: ""
+  created: "2026-04-16"
+  updated: "2026-04-16"
+
+stages:
+  plan:
+    status: "in_progress"
+    entered: "2026-04-16"
+    completed: ""
+  implement:
+    status: "pending"
+    entered: ""
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+items:
+  agent-teams-audit:
+    name: "Study Claude Code's .claude/agents/ mechanism: registration, context overhead, tool scoping, subagent_type resolution, how it interacts with the Agent tool we already use"
+    pillar: "named-subagents"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  acu-subagent-surface-map:
+    name: "Enumerate every place Acu currently spawns subagents inline (acu-parallel workers, acu-parallel merge, acu-parallel selection, acu-eval stage/pipeline/system tiers); record prompt shape, tool needs, and reuse frequency"
+    pillar: "named-subagents"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  named-agents-set-design:
+    name: "Select the minimal set of framework-level agents (candidates: teacher, faculty-head, sauron-eval, merge-synthesizer, selection-judge, devils-advocate, citation-checker); define tool scopes and confirm pipeline-isolation preservation"
+    pillar: "named-subagents"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  fan-out-persona-resolution-spec:
+    name: "Specify how fan_out worker_personas entries can resolve to named agents (e.g., 'agent:devils-advocate') while keeping free-form string personas as fallback; backward compatibility required"
+    pillar: "named-subagents"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  framework-agents-scaffold:
+    name: "Create .claude/agents/ with the agents selected in Item 3; each agent gets a versioned .md file with frontmatter (name, description, tools) and a role-scoped system prompt"
+    pillar: "named-subagents"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  acu-eval-wire-named-agents:
+    name: "Update acu-eval to invoke teacher/faculty-head/sauron-eval as named agents instead of inline prompts; preserve Evaluator-Optimizer loop and existing eval_chain semantics"
+    pillar: "named-subagents"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  acu-parallel-wire-named-agents:
+    name: "Update acu-parallel to invoke merge-synthesizer and selection-judge as named agents; support 'agent:<name>' in worker_personas per the spec from Item 4"
+    pillar: "named-subagents"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  inline-to-named-migration:
+    name: "Sweep Brainstorming and Research workspaces for inline prompts matching framework-agent patterns (devils-advocate in Brainstorming, citation-checker in Research); migrate where the match is clean"
+    pillar: "named-subagents"
+    phase: 4
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+
+notes: "Proposal surfaced during a 2026-04-16 conversation about whether Acu uses Claude Code agent teams. Current state: acu-parallel spawns ad-hoc subagents via the Agent tool; no .claude/agents/ directory exists. Soft dependency: land AFTER learning-friction-research's nomenclature-audit — agent names are load-bearing nomenclature and should be validated against the methods doc. No blocker if that dependency slips: the naming can be revised in a follow-up."
