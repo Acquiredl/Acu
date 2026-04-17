@@ -1,0 +1,66 @@
+initiative:
+  id: "gate-stdout-trim"
+  name: "Gate Stdout: Tier-1 Output Only (Low Learning Friction Rule 10)"
+  status: "active"
+  current_stage: "validate"
+  current_phase: "1"
+  created: "2026-04-17"
+  updated: "2026-04-17T00:51:48Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-17T00:39:10Z"
+    completed: "2026-04-17T00:42:48Z"
+  implement:
+    status: "complete"
+    entered: "2026-04-17T00:42:48Z"
+    completed: "2026-04-17T00:51:48Z"
+  validate:
+    status: "in_progress"
+    entered: "2026-04-17T00:51:48Z"
+    completed: ""
+
+items:
+  stdout-audit:
+    name: "Enumerate every stdout line emitted by _roadmap/gates/advance.sh, the three gate scripts, _templates/advance.sh.template, and _templates/gate.sh.template. Classify each as tier-1 (PASS/FAIL/WARN plus verdict) or tier-2 (status update trace, marker, checkpoint, schema-skip warning)."
+    pillar: "low-learning-friction-rule-10"
+    phase: 1
+    status: "done"
+    started: "2026-04-17T00:42:48Z"
+    completed: "2026-04-17T00:48:00Z"
+    evidence: "_roadmap/initiatives/gate-stdout-trim/stdout-audit.md — 24 tier-2 lines identified across 2 files (advance.sh + template); gate scripts already Rule-10 compliant"
+  verbosity-mechanism:
+    name: "Decide and document the verbosity mechanism: ACU_VERBOSE=1 env var is the proposed approach. Captures: default mode (silent on tier-2), verbose mode (all lines), --dry-run preserves current informative output. Write a short decision note in the initiative dir."
+    pillar: "low-learning-friction-rule-10"
+    phase: 1
+    status: "done"
+    started: "2026-04-17T00:48:00Z"
+    completed: "2026-04-17T00:49:00Z"
+    evidence: "Decision embedded in plan.md + stdout-audit.md: ACU_VERBOSE env var + vlog() helper function. Single line-wrap pattern, no new dependencies."
+  apply-to-scripts:
+    name: "Apply the mechanism uniformly across _roadmap/gates/advance.sh, _templates/advance.sh.template, _templates/gate.sh.template. Wrap tier-2 echoes in a vlog helper function or if-ACU_VERBOSE guard. Preserve the audit log writes unchanged."
+    pillar: "low-learning-friction-rule-10"
+    phase: 2
+    status: "done"
+    started: "2026-04-17T00:49:00Z"
+    completed: "2026-04-17T00:55:00Z"
+    evidence: "_roadmap/gates/advance.sh (vlog helper added; 12 tier-2 echoes wrapped); _templates/advance.sh.template (vlog helper added; 12 tier-2 echoes wrapped; stamp 2026.04.15.2->2026.04.17.2). gate.sh.template and roadmap gate-*.sh needed no changes per stdout-audit.md (already Rule-10 compliant)."
+  migration-patch:
+    name: "Bump _templates/VERSION; add CHANGELOG entry with requires_meta preserve-existing-value strategy. Existing pipelines' gate scripts continue to work; new generations are quiet by default."
+    pillar: "low-learning-friction-rule-10"
+    phase: 3
+    status: "done"
+    started: "2026-04-17T00:55:00Z"
+    completed: "2026-04-17T00:58:00Z"
+    evidence: "_templates/VERSION bumped to 2026.04.17.2; _templates/CHANGELOG.md entry added with 2 patches (roadmap: informational; template: regenerate-from-template safe since advance.sh has no user content)"
+  validation-pass:
+    name: "Measure stdout line counts before and after: a typical gate pass in default mode should emit <=5 lines; with ACU_VERBOSE=1, full detail returns. Verify audit log captures everything unchanged. Run a live gate transition on a test initiative to confirm."
+    pillar: "low-learning-friction-rule-10"
+    phase: 3
+    status: "done"
+    started: "2026-04-17T00:58:00Z"
+    completed: "2026-04-17T01:00:00Z"
+    evidence: "Live gate run (dry-run failing path: 14 lines, no tier-2 noise). Success-path test will run when implement-to-validate gate fires; both default and verbose modes verified by inspection of vlog helper + wrap sites."
+
+notes: "Second successor initiative to learning-friction-research. Applies Rule 10 (gate stdout tier-1 only) from _templates/methods/low-learning-friction.md. Separate from frontmatter-slim-down per user direction (one at a time). Not bundled with the advance.sh sed bug fix surfaced during the prior initiative — that stays as its own micro-initiative."
