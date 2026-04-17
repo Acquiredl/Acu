@@ -23,6 +23,16 @@ PIPELINE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SESSION_ID="${ACU_SESSION:-$$}"
 
+# --- Tier-2 output helper (Rule 10) ---
+# Default gate output is tier-1 only: [PASS] / [FAIL] / [WARN] and the final verdict.
+# Status-field updates, marker/checkpoint paths, and confirmations are tier-2 —
+# hidden unless ACU_VERBOSE is set (any non-empty value enables). The audit log
+# captures everything either way.
+vlog() {
+    [[ -n "${ACU_VERBOSE:-}" ]] && echo "$@"
+    return 0
+}
+
 # --- Flag parsing ---
 DRY_RUN=false
 while [[ "${1:-}" == --* ]]; do
@@ -132,8 +142,8 @@ if [[ ! -f "$STATUS_FILE" ]]; then
     exit 0
 fi
 
-echo ""
-echo "--- Updating status.yaml ---"
+vlog ""
+vlog "--- Updating status.yaml ---"
 
 update_stage_field() {
     local stage="$1"
@@ -167,10 +177,10 @@ update_stage_field() {
 # Update initiative-level current_stage
 if [[ -n "$NEXT_STAGE" ]]; then
     sed -i "s/current_stage:.*/current_stage: \"$NEXT_STAGE\"/" "$STATUS_FILE"
-    echo "  current_stage -> $NEXT_STAGE"
+    vlog "  current_stage -> $NEXT_STAGE"
 else
     sed -i 's/status: "active"/status: "complete"/' "$STATUS_FILE"
-    echo "  initiative status -> complete"
+    vlog "  initiative status -> complete"
 fi
 
 # Update timestamp
@@ -179,20 +189,20 @@ sed -i "s/updated:.*/updated: \"$TIMESTAMP\"/" "$STATUS_FILE"
 # Mark completed stage
 update_stage_field "$COMPLETED_STAGE" "status" "complete" "$STATUS_FILE"
 update_stage_field "$COMPLETED_STAGE" "completed" "$TIMESTAMP" "$STATUS_FILE"
-echo "  $COMPLETED_STAGE.status -> complete"
-echo "  $COMPLETED_STAGE.completed -> $TIMESTAMP"
+vlog "  $COMPLETED_STAGE.status -> complete"
+vlog "  $COMPLETED_STAGE.completed -> $TIMESTAMP"
 
 # Start next stage (if not final)
 if [[ -n "$NEXT_STAGE" ]]; then
     update_stage_field "$NEXT_STAGE" "status" "in_progress" "$STATUS_FILE"
     update_stage_field "$NEXT_STAGE" "entered" "$TIMESTAMP" "$STATUS_FILE"
-    echo "  $NEXT_STAGE.status -> in_progress"
-    echo "  $NEXT_STAGE.entered -> $TIMESTAMP"
+    vlog "  $NEXT_STAGE.status -> in_progress"
+    vlog "  $NEXT_STAGE.entered -> $TIMESTAMP"
 fi
 
 # --- Write idempotency marker ---
 touch "$MARKER_FILE"
-echo "  Marker: .gate-${TRANSITION}.passed"
+vlog "  Marker: .gate-${TRANSITION}.passed"
 
 # --- Checkpoint ---
 CHECKPOINT_DIR="$INITIATIVE_DIR/.checkpoints/$TIMESTAMP"
@@ -204,7 +214,7 @@ find "$INITIATIVE_DIR" -maxdepth 1 -type f \( -name "*.md" -o -name "*.yaml" \) 
         size=$(wc -c < "$f" 2>/dev/null || echo "0")
         printf "%s\t%s\t%s\n" "$(basename "$f")" "$size" "$sha"
     done > "$CHECKPOINT_DIR/manifest.txt"
-echo "  Checkpoint: .checkpoints/$TIMESTAMP/"
+vlog "  Checkpoint: .checkpoints/$TIMESTAMP/"
 
-echo ""
-echo "Status updated successfully."
+vlog ""
+vlog "Status updated successfully."

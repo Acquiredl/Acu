@@ -1,0 +1,22 @@
+initiative:
+  id: "gate-stdout-trim"
+  name: "Gate Stdout: Tier-1 Output Only (Low Learning Friction Rule 10)"
+  description: "Apply Low Learning Friction Rule 10 to advance.sh and gate scripts. Default stdout emits only [PASS]/[FAIL]/[WARN] lines and the terminal GATE PASSED/FAILED verdict. Checkpoint paths, idempotency markers, audit log paths, status-field update traces, and schema-skip warnings move behind ACU_VERBOSE=1 (or equivalent), or into log files. Audit trail already captures everything — stdout noise is duplicative."
+  created: "2026-04-17"
+  engineer: "Stephane"
+
+source:
+  type: "sauron-proposal"
+  path: "_roadmap/initiatives/learning-friction-research/validate.md"
+  date: "2026-04-17"
+
+scope:
+  pillars: 1
+  items: 5
+  phases: 3
+  affects:
+    - templates
+    - roadmap
+
+rules:
+  scope: "gate script output only — no change to gate logic, exit codes, audit log format, or checkpoint content. What's captured doesn't change; what's displayed does."
