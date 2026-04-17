@@ -1,0 +1,82 @@
+initiative:
+  id: "tag-claude-md-quadrants"
+  name: "Quadrant-Tag CLAUDE.md Files (Low Learning Friction Rule 6)"
+  status: "active"
+  current_stage: "implement"
+  current_phase: ""
+  created: "2026-04-17"
+  updated: "2026-04-17T11:07:34Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-17T01:15:53Z"
+    completed: "2026-04-17T11:07:34Z"
+  implement:
+    status: "in_progress"
+    entered: "2026-04-17T11:07:34Z"
+    completed: ""
+  validate:
+    status: "pending"
+    entered: ""
+    completed: ""
+
+items:
+  quadrant-classification:
+    name: "Classify every section in the three CLAUDE.md templates (pipeline, stage, workspace) against Diátaxis quadrants. Produce a reference table: template section header -> quadrant. This is the authoritative per-section classification the templates will reflect."
+    pillar: "low-learning-friction-rule-6"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  callout-format-decision:
+    name: "Decide and document the exact tag syntax: HTML comment format (<!-- quadrant: {reference|how-to|explanation} -->) and top-of-file callout block format (one-line summary + dominant quadrant). No design freedom left for the generator at emission time."
+    pillar: "low-learning-friction-rule-6"
+    phase: 1
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  template-refactor:
+    name: "Update _templates/pipeline-claude.md.template, _templates/stage-claude.md.template, _templates/workspace-claude.md.template. Add the top-of-file callout. Insert HTML-comment tags before every H2 section per the classification. Bump per-file version stamps. Update _templates/methods/low-learning-friction.md Rule 6 with a concrete example of the adopted tag pattern."
+    pillar: "low-learning-friction-rule-6"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  generator-update:
+    name: "Update .claude/skills/acu-new/SKILL.md so the generator emits the callout and per-section tags at generation time. Update Step 5 VERIFY checklist to assert tag presence on every H2."
+    pillar: "low-learning-friction-rule-6"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  acu-check-update:
+    name: "Add a warn-level structural check in .claude/skills/acu-check/SKILL.md: scan each pipeline CLAUDE.md and stage CLAUDE.md for H2 sections missing a preceding HTML quadrant tag. Emit [WARN], never [FAIL] - existing pipelines must not trip the check."
+    pillar: "low-learning-friction-rule-6"
+    phase: 2
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  migration-patch:
+    name: "Bump _templates/VERSION; write CHANGELOG entry with preserve-existing-value strategy. Template-regenerate patch for pipeline-claude.md.template, stage-claude.md.template, workspace-claude.md.template. Existing live pipelines continue to work unchanged; users who want tags adopt via /acu-update."
+    pillar: "low-learning-friction-rule-6"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+  validation-pass:
+    name: "Regenerate a sample pipeline via acu-new; verify callout + per-section tags present. Run acu-check on an existing live pipeline; verify it passes with at most [WARN]s on tag presence. Confirm the LLM can be prompted to respect the tags (by reading a tagged CLAUDE.md and stating the quadrant of a specific section)."
+    pillar: "low-learning-friction-rule-6"
+    phase: 3
+    status: "planned"
+    started: ""
+    completed: ""
+    evidence: ""
+
+notes: "Third successor initiative to learning-friction-research (after frontmatter-slim-down and gate-stdout-trim). Applies Rule 6 (one artifact, one quadrant - or label sections). Tagging chosen over splitting because Acu's single-CLAUDE.md-per-context loading convention makes splitting a net loss (see plan.md for the decision trace). No runtime behavior change; zero observability surface."
