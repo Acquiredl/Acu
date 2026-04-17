@@ -24,3 +24,6 @@ pipelines/CareerLaunch/
 
 # Observability secrets
 pipelines/*/observability.env
+
+# Ephemeral test fixtures from regression harnesses
+.test-fixture/
