@@ -1,0 +1,58 @@
+initiative:
+  id: "advance-sh-sed-anchor"
+  name: "advance.sh sed anchor fix (audit-trail integrity)"
+  status: "active"
+  current_stage: "validate"
+  current_phase: "1"
+  created: "2026-04-17"
+  updated: "2026-04-17T14:19:59Z"
+
+stages:
+  plan:
+    status: "complete"
+    entered: "2026-04-17"
+    completed: "2026-04-17T14:13:08Z"
+  implement:
+    status: "complete"
+    entered: "2026-04-17T14:13:08Z"
+    completed: "2026-04-17T14:19:59Z"
+  validate:
+    status: "in_progress"
+    entered: "2026-04-17T14:19:59Z"
+    completed: ""
+
+items:
+  audit-sed-patterns:
+    name: "Enumerate every sed -i call in _roadmap/gates/advance.sh and _templates/advance.sh.template; cross-reference the existing generated copies under pipelines/*/gates/ for forward evidence; classify each hit as high/medium/low risk for unanchored-regex-corrupts-prose. Produce an audit table with file path, line number, current regex, risk class, and the anchored replacement."
+    pillar: "reliability-deterministic-gates"
+    phase: 1
+    status: "done"
+    started: "2026-04-17T14:13:08Z"
+    completed: "2026-04-17T14:15:00Z"
+    evidence: "audit.md - 6 sed lines in two framework files classified (3 in _roadmap/gates/advance.sh lines 179/182/187; 3 in _templates/advance.sh.template lines 333/336/341). Scope-corrected: framework file has 3 sed lines not 2 (status-active line at 182 was missed in initial plan). 6 pipeline-copy sed lines cross-referenced (SboxDevKit + CareerLaunch) as forward evidence for the regenerate_from_template patch."
+  anchor-fix:
+    name: "Apply the ^  (start + 2 spaces) anchor to every high/medium-risk sed pattern in both framework-level files. Three lines in _roadmap/gates/advance.sh (179/182/187); three lines in _templates/advance.sh.template (333/336/341). Bump per-file version stamps on both file headers. bash -n must pass on the concrete file."
+    pillar: "reliability-deterministic-gates"
+    phase: 1
+    status: "done"
+    started: "2026-04-17T14:15:00Z"
+    completed: "2026-04-17T14:30:00Z"
+    evidence: "Six sed lines anchored (3 in _roadmap/gates/advance.sh; 3 in _templates/advance.sh.template). Anchor is ^  (start + 2 spaces) because top-level status.yaml fields are indented under initiative: not at column 0 - the handoff's proposed ^KEY: anchor would have silently made the sed a no-op (discovered by regression harness). Both file headers bumped to 2026.04.17.5. bash -n passes on _roadmap/gates/advance.sh."
+  template-version-bump:
+    name: "Bump _templates/VERSION from 2026.04.17.4 to 2026.04.17.5. Add a CHANGELOG entry describing the bug and the fix; include one regenerate_from_template patch for gates/advance.sh so /acu-update surfaces the fix to opt-in pipelines."
+    pillar: "reliability-deterministic-gates"
+    phase: 2
+    status: "done"
+    started: "2026-04-17T14:20:00Z"
+    completed: "2026-04-17T14:25:00Z"
+    evidence: "_templates/VERSION bumped 2026.04.17.4 -> 2026.04.17.5; _templates/CHANGELOG.md has new 2026.04.17.5 entry with full bug description, both corruption events cited, and one regenerate_from_template patch (anchor-sed-patterns-in-advance-sh-v1) for gates/advance.sh."
+  regression-test:
+    name: "Build a reproducible trap-string regression harness. Create a fixture status.yaml whose items evidence fields contain each of the three trap strings. Run the sed block from the fixed advance.sh against the fixture; assert top-level fields update and evidence fields are preserved. Then run the pre-fix sed block against a second copy of the fixture; assert evidence IS corrupted - proving the test is real, not a tautology."
+    pillar: "reliability-deterministic-gates"
+    phase: 2
+    status: "done"
+    started: "2026-04-17T14:25:00Z"
+    completed: "2026-04-17T14:35:00Z"
+    evidence: "regression-test.sh - 9 assertions across two halves. HALF 1 (fixed pattern): 3x top-level field update + 3x evidence-preservation assertions all pass. HALF 2 (unfixed pattern): 4x corruption assertions all pass (updated/current_stage tail-destruction + status-active substring swap). Harness caught a real defect mid-implementation: the handoff's proposed ^KEY: anchor was a no-op on real status.yaml files (top-level fields indented under initiative:); corrected to ^  KEY: (2-space anchor) before the fix shipped."
+
+notes: "Source: _roadmap/HANDOFF-advance-sed-bug.md. Bug observed twice in the 2026-04-17 session (frontmatter-slim-down and orchestrator-and-office-anchor). Both times evidence was hand-healed after the gate ran. Micro-initiative scope deliberately chosen (one-line fix) to land reproducible verification evidence alongside the diff."

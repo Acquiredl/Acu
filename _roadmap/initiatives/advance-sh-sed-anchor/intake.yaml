@@ -1,0 +1,22 @@
+initiative:
+  id: "advance-sh-sed-anchor"
+  name: "advance.sh sed anchor fix (audit-trail integrity)"
+  description: "Anchor every in-place sed rewrite in advance.sh to column 0 (^) so mid-line occurrences of 'updated:', 'current_stage:', or 'status: \"active\"' inside evidence/prose fields cannot be clobbered by a stage-transition gate. Confirmed corruption bug observed twice during the 2026-04-17 session. Fix + regression test + template version bump + CHANGELOG patch."
+  created: "2026-04-17"
+  engineer: "Stephane"
+
+source:
+  type: "manual"
+  path: "_roadmap/HANDOFF-advance-sed-bug.md"
+  date: "2026-04-17"
+
+scope:
+  pillars: 1
+  items: 4
+  phases: 2
+  affects:
+    - roadmap
+    - templates
+
+rules:
+  scope: "framework-level gate-script fix only. No pipeline content changes. Existing generated pipeline gate scripts (pipelines/*/gates/advance.sh) are NOT force-migrated — they adopt via /acu-update on the regenerate_from_template patch landed in this initiative's CHANGELOG entry."
