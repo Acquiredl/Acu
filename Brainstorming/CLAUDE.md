@@ -12,13 +12,12 @@ Take raw ideas and run them through structured challenge rounds — stress-test 
 
 ## Context
 
-Core domains: GitHub, open-source, data-oriented design, accessibility. All tech solutions must be feasible in a turn-key orchestration environment. Reference material lives in `/references` — always check there before guessing at industry standards.
+Core domains: GitHub, open-source, data-oriented design, accessibility. All tech solutions must be feasible in a turn-key orchestration environment. Reference material lives in `/_references` at repo root — always check there before guessing at industry standards.
 
 ## Folder Structure
 
 - `/drafts` — Active work-in-progress. Ideas being shaped.
 - `/frameworks` — Reusable thinking models and decision templates.
-- `/references` — Industry standards and domain knowledge (tech, music, design).
 - `/sessions` — Timestamped session logs tracking what was explored and decided.
 - `/final` — Polished concepts ready for handoff to Production.
 - `/archive` — Retired or superseded ideas. Keep for historical context.
@@ -30,16 +29,17 @@ Core domains: GitHub, open-source, data-oriented design, accessibility. All tech
 |------|-------|------|
 | Start a new brainstorm | `/sessions` | `REFLECTIONS.md`, then `drafts/CONTEXT.md`, then create a new session file |
 | Continue existing work | `/sessions` | Most recent session file, then `REFLECTIONS.md` |
-| Look up tech standards | `/references` | `references/tech-standards.md` |
-| Look up music theory | `/references` | `references/music-theory.md` |
+| Look up any standard  | `/_references` | [../_references/INDEX.md](../_references/INDEX.md) |
+| Look up music theory | `/_references` | Not yet catalogued — see main INDEX for domain gaps |
 | Finalize a concept | `/final` | `drafts/CONTEXT.md` for the handoff process |
 | Review past decisions | `/archive` | `REFLECTIONS.md` |
 
 ## Constraints
 
-- Do not guess industry standards — always check `/references` first.
+- Do not guess industry standards — always check [../_references/INDEX.md](../_references/INDEX.md) first. De-facto standards (e.g., FAIR, SemVer, SBTi) are acceptable if they meet the catalog's acceptance criteria (authoritative body, narrow concern, accessible URL, actionable criteria).
+- If no canonical standard exists for the concern, say so explicitly: "No canonical exists — decision grounded in {regulatory / contractual / academic / pragmatic basis}." This is a valid, audit-accepted outcome.
 - No ungrounded ideas leave this workspace. Every concept must survive a "Why does this matter?" challenge.
-- Common frameworks: NIST (security), MDA (game design), WCAG (accessibility), 12-Factor (cloud apps).
+- Default framework families: WCAG (accessibility), 12-Factor (cloud apps), NIST CSF (security), MDA (game mechanics). Field-specific standards are catalogued in `/_references`.
 
 ## Output Format
 

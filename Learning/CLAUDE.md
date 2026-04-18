@@ -68,7 +68,6 @@ For topics that require systematic study. Follows Theory → Implementation → 
 - `/drafts` — Concept Journal entries and theory notes in progress.
 - `/sessions` — Mastery Pipeline study session logs with `Grasp` metadata.
 - `/labs` — Hands-on walkthroughs, automation scripts, and lab environments.
-- `/references` — Domain knowledge and standards (NIST, WCAG, etc.).
 - `/frameworks` — Reusable learning models and study methodologies.
 - `/final` — Polished revision guides and mature concept references.
 - `/archive` — Completed or superseded topics.
@@ -82,14 +81,14 @@ For topics that require systematic study. Follows Theory → Implementation → 
 | Update an existing concept | `/drafts` | Find the concept file, add to relevant sections |
 | Start structured study | `/sessions` | `drafts/CONTEXT.md` then create a session file with `Grasp: Novice` |
 | Continue studying | `/sessions` | Most recent session file, then `REFLECTIONS.md` |
-| Research standards | `/references` | Relevant reference file (e.g., `references/tech-standards.md`) |
+| Research standards | `/_references` | [../_references/INDEX.md](../_references/INDEX.md) |
 | Build a lab | `/labs` | `labs/CONTEXT.md` for environment setup process |
 | Finalize a topic | `/final` | `final/CONTEXT.md` for the revision guide format |
 | Review past gaps | `/archive` | `REFLECTIONS.md` |
 
 ## Constraints
 
-- Do not guess standards — always check `/references` first.
+- Do not guess standards — always check [../_references/INDEX.md](../_references/INDEX.md) first. De-facto standards are acceptable if they meet the catalog's acceptance criteria. If no canonical exists for a concern, say so explicitly — this is a valid outcome, not a failure.
 - Monitor `Grasp` tag. Increase challenge as proficiency rises.
 - Evidence-based only. Cite NIST, GC Standards, or academic sources. Critique pseudo-science if it appears.
 - Bilingual requirement: all revision guides include key terms in English and French.

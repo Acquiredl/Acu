@@ -57,6 +57,7 @@ Reserved for cross-pipeline and framework concerns. Not for project-specific wor
 ## Infrastructure
 
 - `/_roadmap` — Framework evolution tracker. Plan → Implement → Validate.
+- `/_references` — Canonical standards catalog (WCAG, ISO, IEEE, WHO, etc.), one file per concern. Used by `/Brainstorming` and `/Learning` to ground decisions; see `_references/INDEX.md`.
 - `/_templates` — Structural templates used by `/acu-new`. Only the Orchestrator modifies these.
 - `REVIEW-LOG.md` — Maintenance suggestions from the review-push cycle.
 - `syslog.sh` — Cross-pipeline audit log aggregation. Read-only, on-demand.
