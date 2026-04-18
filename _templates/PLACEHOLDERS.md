@@ -202,6 +202,18 @@ The `eval-gate.md.template` generates per-stage evaluation prompts placed in sta
 
 The `eval_tier: "stage"` field in the eval-gate.md frontmatter accommodates future pipeline-level (`"pipeline"`) and system-level (`"system"`, run by the Orchestrator) evaluators.
 
+### Eval-Pipeline Prompt Template Placeholders
+
+The `eval-pipeline.md.template` generates the pipeline-level evaluation prompt placed at the pipeline root. Only generated when `eval_chain` includes `"pipeline"`. Unlike stage-level placeholders, these are filled at evaluation time by `/acu-eval` (not by `/acu-new` at generation time) because they read live unit state.
+
+| Placeholder | Source | Format |
+|-------------|--------|--------|
+| `{{ALL_STAGE_DELIVERABLES}}` | Every `{stage}.md` file read from the unit directory at eval time | Concatenated deliverables — one block per stage, typically `## {Stage Name}\n\n{file content}\n\n---\n` |
+| `{{INTAKE_CONTEXT}}` | The unit's `intake.yaml` contents read at eval time | Rendered YAML preserving the original request fields |
+| `{{PIPELINE_EVAL_CRITERIA_PROSE}}` | `pipeline_eval_criteria` field from pipeline CLAUDE.md frontmatter | Numbered list of criteria in prose form, one per line |
+
+`{{PIPELINE_NAME}}` and `{{PIPELINE_DESCRIPTION}}` are reused from the Universal and Pipeline CLAUDE.md sections above; those are filled by `/acu-new` at generation time.
+
 ### Progressive Frontmatter Block Examples (2026.04.17.1)
 
 **Pipeline, all features off** (the typical case). Blocks all expand to empty strings:
