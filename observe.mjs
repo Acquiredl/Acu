@@ -404,7 +404,8 @@ function printGateSection(pulse) {
   }
 
   const a = pulse.autonomy;
-  console.log(`Autonomy — structural: ${a.structural.rate != null ? a.structural.rate + '%' : 'N/A'}, full-stack: ${a.full_stack.rate != null ? a.full_stack.rate + '%' : 'N/A'} (${a.eligible} eligible)`);
+  const rateDisplay = a.rate != null ? a.rate + '%' : 'N/A';
+  console.log(`Autonomy: ${rateDisplay} (${a.clean} clean / ${a.completed} completed, ${a.total} total)`);
 
   // Top 5 lowest first-pass rates
   const fpr = pulse.gate_analytics?.first_pass_rates || {};
