@@ -61,6 +61,15 @@ skills:
   parallel:
     skill: /acu-parallel
     keywords: [parallel, fan out, workers, split, competing, teams, parallel stage]
+  brainstorm:
+    skill: /acu-brainstorm
+    keywords: [acu-brainstorm, stress-test idea, devils-advocate round, brainstorm skill]
+  research:
+    skill: /acu-research
+    keywords: [acu-research, findings report, source-first research, cite sources]
+  learn:
+    skill: /acu-learn
+    keywords: [acu-learn, learning pipeline, proficiency tier, theory-implementation-synthesis, study skill]
 
 methods:
   code-review:
@@ -91,6 +100,10 @@ methods:
     path: _templates/methods/agent-engineering.md
     applies_to: [design, plan, review, ship]
     keywords: [agent, reliability, security, observability, evaluation, technical debt, architecture principles]
+  low-learning-friction:
+    path: _templates/methods/low-learning-friction.md
+    applies_to: [design, plan, review]
+    keywords: [learning friction, progressive disclosure, legible names, optional over required, learning gradient]
 
 review:
   health:
@@ -103,6 +116,19 @@ review:
     modify: _templates/
     log: REVIEW-LOG.md
 
+references:
+  path: _references
+  role: Canonical standards catalog (WCAG, ISO, IEEE, WHO, CODATA, CEFR)
+  keywords: [standards, reference catalog, wcag, iso, ieee, who, codata, cefr, canonical standard]
+
 onboarding:
   path: QUICKSTART.md
   keywords: [new user, getting started, how does this work, first pipeline, onboarding]
+
+docs:
+  architecture:
+    path: ARCHITECTURE.md
+    keywords: [architecture, diagram, c4, container view, component view, system design, how is acu built]
+  primer:
+    path: PRIMER.md
+    keywords: [primer, explanation, mental model, walkthrough, refresher, how does acu work, remind me]
