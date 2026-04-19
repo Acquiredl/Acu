@@ -442,18 +442,18 @@ The diagrams show what Acu is. These principles show what keeps it coherent. Ful
 
 | Concern | File |
 |---------|------|
-| Routing (source of truth) | [ROUTES.yaml](ROUTES.yaml) |
-| Orchestrator behavior | [Orchestrator/CLAUDE.md](Orchestrator/CLAUDE.md) |
-| Framework charter | [CLAUDE.md](CLAUDE.md) |
-| Pipeline index | [pipelines/CLAUDE.md](pipelines/CLAUDE.md) |
-| Templates (versioned) | [_templates/](_templates/) |
-| Gate mechanics | [_templates/advance.sh.template](_templates/advance.sh.template) |
-| Semantic evaluator prompt | [_templates/eval-gate.md.template](_templates/eval-gate.md.template) |
-| Agent-engineering rationale | [_templates/methods/agent-engineering.md](_templates/methods/agent-engineering.md) |
-| Security posture | [THREAT-MODEL.md](THREAT-MODEL.md) |
-| Observability | [observe.mjs](observe.mjs) · [pulse.mjs](pulse.mjs) · [emit-trace.mjs](emit-trace.mjs) · [syslog.sh](syslog.sh) |
-| Review cadence | [REVIEW-LOG.md](REVIEW-LOG.md) |
-| Onboarding | [QUICKSTART.md](QUICKSTART.md) |
+| Routing (source of truth) | [ROUTES.yaml](../ROUTES.yaml) |
+| Orchestrator behavior | [Orchestrator/CLAUDE.md](../Orchestrator/CLAUDE.md) |
+| Framework charter | [CLAUDE.md](../CLAUDE.md) |
+| Pipeline index | [pipelines/CLAUDE.md](../pipelines/CLAUDE.md) |
+| Templates (versioned) | [_templates/](../_templates/) |
+| Gate mechanics | [_templates/advance.sh.template](../_templates/advance.sh.template) |
+| Semantic evaluator prompt | [_templates/eval-gate.md.template](../_templates/eval-gate.md.template) |
+| Agent-engineering rationale | [_templates/methods/agent-engineering.md](../_templates/methods/agent-engineering.md) |
+| Security posture | [THREAT-MODEL.md](../THREAT-MODEL.md) |
+| Observability | [observe.mjs](../observe.mjs) · [pulse.mjs](../pulse.mjs) · [emit-trace.mjs](../emit-trace.mjs) · [syslog.sh](../syslog.sh) |
+| Review cadence | [REVIEW-LOG.md](../REVIEW-LOG.md) |
+| Onboarding | [QUICKSTART.md](../QUICKSTART.md) |
 
 ---
 

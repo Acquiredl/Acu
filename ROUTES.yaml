@@ -127,8 +127,8 @@ onboarding:
 
 docs:
   architecture:
-    path: ARCHITECTURE.md
+    path: _docs/ARCHITECTURE.md
     keywords: [architecture, diagram, c4, container view, component view, system design, how is acu built]
   primer:
-    path: PRIMER.md
+    path: _docs/PRIMER.md
     keywords: [primer, explanation, mental model, walkthrough, refresher, how does acu work, remind me]

@@ -2,7 +2,7 @@
 
 A narrative walkthrough of what Acu is, how it works, and why it's shaped the way it is.
 
-This document is for *re-reading*. If you've been away from the framework for a while and want to refresh your mental model, start here. For diagrams, go to [ARCHITECTURE.md](ARCHITECTURE.md). For hands-on setup, go to [QUICKSTART.md](QUICKSTART.md). This primer is the connective tissue between them.
+This document is for *re-reading*. If you've been away from the framework for a while and want to refresh your mental model, start here. For diagrams, go to [ARCHITECTURE.md](ARCHITECTURE.md). For hands-on setup, go to [QUICKSTART.md](../QUICKSTART.md). This primer is the connective tissue between them.
 
 ---
 
@@ -138,7 +138,8 @@ A quick directory tour so you can find anything in under ten seconds.
 - `_roadmap/` — framework evolution. Plan → implement → validate.
 - `.claude/skills/` — the `/acu-*` slash commands.
 - `REVIEW-LOG.md` — Orchestrator observations and proposals.
-- `QUICKSTART.md`, `ARCHITECTURE.md`, `THREAT-MODEL.md` — onboarding, diagrams, security posture.
+- `QUICKSTART.md`, `THREAT-MODEL.md` — onboarding and security posture.
+- `_docs/` — framework documentation (`ARCHITECTURE.md`, `PRIMER.md`).
 
 **Inside a pipeline**
 
